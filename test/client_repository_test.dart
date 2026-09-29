@@ -66,5 +66,7 @@ void main() {
       timeout: const Duration(milliseconds: 5),
     );
     expect(result.phase, DeviceCommandPhase.error);
+    expect(result.device?.state, 'on');
+    expect(result.device?.status, 'online');
   });
 }
