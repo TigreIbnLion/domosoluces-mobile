@@ -25,6 +25,33 @@ void main() {
     repository = AuthRepository(ApiClient(tokens, dio: dio), tokens);
   });
 
+  test('login accepts contractual UserResource before sites relation is loaded', () async {
+    adapter.onPost('auth/login', (server) => server.reply(200, {
+      'message': 'Connexion réussie.',
+      'token': 'new-token',
+      'user': {
+        'id': 'user-1',
+        'name': 'Client',
+        'email': 'client@example.test',
+        'phone': null,
+        'role': 'client',
+        'zone': null,
+        'is_active': true,
+        'has_2fa': false,
+        'created_at': '2026-09-29',
+        'unread_alerts': 0,
+      },
+    }));
+    final user = await repository.login(
+      email: 'client@example.test',
+      password: 'password',
+      deviceName: 'DOMOSOLUCES Mobile',
+    );
+    expect(user.id, 'user-1');
+    expect(user.sites, isEmpty);
+    expect(tokens.token, 'new-token');
+  });
+
   test('logout-all clears secure token', () async {
     adapter.onPost('auth/logout-all', (server) => server.reply(200, {'message': 'ok'}));
     await repository.logoutAll();
