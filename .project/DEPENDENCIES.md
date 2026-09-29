@@ -1,13 +1,11 @@
-# DEPENDENCIES
+# Dépendances inter-blocs
 
-## MOBILE -> WEB_API
-Besoin: figer les schemas de reponse JSON de GET /client/kits, GET /client/kits/{kit}, GET /client/kits/{kit}/devices et GET /client/devices/{device}/status, notamment les identifiants contractuels a reutiliser dans les URLs.
-Motif: permettre la navigation Kit -> Equipements -> Detail sans inventer de champs id/uid/name ni de wrappers de reponse.
-Urgence: HAUTE
-Statut: A TRAITER PAR LEAD
+Format : date | demandeur | fournisseur | besoin | urgence | statut
 
-## MOBILE -> WEB_API
-Besoin: confirmer le format exact de GET /auth/me (objet user direct ou enveloppe user) et les champs User V1 affichables.
-Motif: typer le profil et finaliser le bootstrap de session sans hypothese de payload.
-Urgence: MOYENNE
-Statut: A TRAITER PAR LEAD
+## Ouvertes
+- 2026-09-29 | EQUIPEMENT | WEB_API | Figer contrat MQTT/ACK/telemetry/heartbeat V1 | CRITIQUE | EN COURS LEAD
+- 2026-09-29 | WEB_API | EQUIPEMENT | Définir capacités exactes du prototype Keyestudio et mapping vers matériel final | HAUTE | A TRAITER
+- 2026-09-29 | EQUIPEMENT | LEAD | Définir provisioning et frontière de confidentialité usine | CRITIQUE | EN COURS LEAD
+
+## Résolues
+- 2026-09-29 | MOBILE | WEB_API | Figer API client V1 : schémas /auth/me, kits, devices et status pour Flutter | HAUTE | RESOLU — publié dans .project/contracts/API_CLIENT_V1.md
