@@ -19,7 +19,11 @@ final class AuthController extends AsyncNotifier<User?> {
   Future<User?> build() async {
     final repo = ref.read(authRepositoryProvider);
     if (!await repo.hasSession()) return null;
-    try { return await repo.me(); } catch (_) { return null; }
+    try {
+      return await repo.me();
+    } catch (_) {
+      return null;
+    }
   }
 
   Future<void> login(String email, String password) async {
@@ -32,5 +36,34 @@ final class AuthController extends AsyncNotifier<User?> {
     state = const AsyncLoading();
     await ref.read(authRepositoryProvider).logout();
     state = const AsyncData(null);
+  }
+}
+
+final deviceCommandProvider = AsyncNotifierProviderFamily<DeviceCommandController,
+    DeviceCommandState, String>(DeviceCommandController.new);
+
+final class DeviceCommandController
+    extends FamilyAsyncNotifier<DeviceCommandState, String> {
+  @override
+  Future<DeviceCommandState> build(String arg) async =>
+      const DeviceCommandState(DeviceCommandPhase.idle);
+
+  Future<void> execute({required bool turnOn}) async {
+    state = const AsyncData(DeviceCommandState(DeviceCommandPhase.pending));
+    try {
+      final result = await ref.read(clientRepositoryProvider)
+          .commandAndConfirm(arg, turnOn: turnOn);
+      state = AsyncData(result);
+    } catch (error, stack) {
+      state = AsyncError(error, stack);
+    }
+  }
+
+  Future<void> refresh() async {
+    state = const AsyncLoading();
+    state = await AsyncValue.guard(() async {
+      final device = await ref.read(clientRepositoryProvider).status(arg);
+      return DeviceCommandState(DeviceCommandPhase.idle, device: device);
+    });
   }
 }
