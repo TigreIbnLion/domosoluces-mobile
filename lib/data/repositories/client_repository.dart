@@ -34,9 +34,15 @@ final class ClientRepository {
     final expected = turnOn ? 'on' : 'off';
     while (DateTime.now().isBefore(deadline)) {
       await Future<void>.delayed(interval);
-      final current = await status(device);
-      if (current.state?.toLowerCase() == expected) {
-        return DeviceCommandState(DeviceCommandPhase.confirmed, device: current);
+      try {
+        final current = await status(device);
+        if (current.state?.toLowerCase() == expected) {
+          return DeviceCommandState(DeviceCommandPhase.confirmed, device: current);
+        }
+      } on NetworkException {
+        // Connectivity can recover before the confirmation deadline.
+      } on ServerException {
+        // A temporary server failure must not turn an accepted command into success.
       }
     }
     return const DeviceCommandState(DeviceCommandPhase.error,
