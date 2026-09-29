@@ -7,7 +7,7 @@ final class ApiClient {
   ApiClient(this._tokens, {Dio? dio})
       : _dio = dio ??
             Dio(BaseOptions(
-              baseUrl: AppConfig.apiBaseUri.toString(),
+              baseUrl: '${AppConfig.apiBaseUri.toString()}/',
               connectTimeout: const Duration(seconds: 15),
               receiveTimeout: const Duration(seconds: 20),
               sendTimeout: const Duration(seconds: 20),
@@ -31,12 +31,10 @@ final class ApiClient {
   Future<Object?> delete(String path) => _request('DELETE', path);
 
   Future<Object?> _request(String method, String path, {Object? data}) async {
+    final relativePath = path.startsWith('/') ? path.substring(1) : path;
     try {
       final response = await _dio.request<Object?>(
-        path,
-        data: data,
-        options: Options(method: method),
-      );
+        relativePath, data: data, options: Options(method: method));
       return response.data;
     } on DioException catch (error) {
       final response = error.response;
