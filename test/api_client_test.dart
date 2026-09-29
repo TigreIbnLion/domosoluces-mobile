@@ -31,6 +31,22 @@ void main() {
     expect(tokens.token, 'secret');
   });
 
+  test('connection failure maps to NetworkException', () async {
+    final failingDio = Dio(BaseOptions(baseUrl: 'https://example.test/api/'));
+    failingDio.interceptors.add(InterceptorsWrapper(
+      onRequest: (options, handler) => handler.reject(DioException(
+        requestOptions: options,
+        type: DioExceptionType.connectionError,
+        message: 'offline',
+      )),
+    ));
+    final failingApi = ApiClient(tokens, dio: failingDio);
+    await expectLater(
+      failingApi.get('/client/kits'),
+      throwsA(isA<NetworkException>()),
+    );
+  });
+
   test('401 clears local session token', () async {
     adapter.onGet('auth/me', (server) => server.reply(401, {'message': 'Expired'}));
     await expectLater(api.get('/auth/me'), throwsA(isA<UnauthorizedException>()));
