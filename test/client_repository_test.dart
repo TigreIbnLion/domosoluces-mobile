@@ -27,7 +27,7 @@ void main() {
     adapter.onPost('client/devices/42/on', (server) =>
         server.reply(202, {'message': 'accepted'}));
     adapter.onGet('client/devices/42/status', (server) =>
-        server.reply(200, {'state': 'on', 'status': 'online'}));
+        server.reply(200, {'device': {'id':'dev-1','kit_id':'kit-1','device_uid':'D1','name':'Prise','room':null,'type':'prise','status':'online','state':'on','is_active':true,'current_power':0,'energy_kwh':0}}));
 
     final result = await repository.commandAndConfirm(
       '42',
