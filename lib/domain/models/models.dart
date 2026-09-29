@@ -26,7 +26,9 @@ final class User {
     phone: j['phone'] as String?, role: j['role'] as String, zone: j['zone'] as String?,
     isActive: j['is_active'] as bool, has2fa: j['has_2fa'] as bool,
     createdAt: j['created_at'] as String, unreadAlerts: j['unread_alerts'] as int,
-    sites: (j['sites'] as List).map((e) => Site.fromJson(Map<String, Object?>.from(e as Map))).toList(growable: false),
+    sites: (j['sites'] is List ? j['sites'] as List : const <Object?>[])
+        .map((e) => Site.fromJson(Map<String, Object?>.from(e as Map)))
+        .toList(growable: false),
   );
 }
 
