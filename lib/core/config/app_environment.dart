@@ -11,19 +11,32 @@ final class AppConfig {
   static AppEnvironment get environment => switch (environmentName) {
         'production' => AppEnvironment.production,
         'staging' => AppEnvironment.staging,
-        _ => AppEnvironment.dev,
+        'dev' => AppEnvironment.dev,
+        _ => throw StateError('Unsupported APP_ENV: $environmentName'),
       };
 
   static Uri get apiBaseUri {
-    final origin = Uri.parse(apiOrigin);
+    if (apiOrigin.trim().isEmpty) {
+      throw StateError('API_ORIGIN must not be empty.');
+    }
+    final origin = Uri.tryParse(apiOrigin);
+    if (origin == null || !origin.hasScheme || origin.host.isEmpty) {
+      throw StateError('API_ORIGIN must be an absolute HTTP(S) URL.');
+    }
+    if (origin.scheme != 'http' && origin.scheme != 'https') {
+      throw StateError('API_ORIGIN must use HTTP or HTTPS.');
+    }
     if (environment == AppEnvironment.production && origin.scheme != 'https') {
       throw StateError('Production API_ORIGIN must use HTTPS.');
     }
-    return origin.replace(path: _join(origin.path, 'api'));
+    return origin.replace(path: _join(origin.path, 'api'), query: null, fragment: null);
   }
 
   static String _join(String left, String right) {
-    final a = left.endsWith('/') ? left.substring(0, left.length - 1) : left;
-    return '$a/$right';
+    final normalized = left.endsWith('/')
+        ? left.substring(0, left.length - 1)
+        : left;
+    if (normalized.endsWith('/api')) return normalized;
+    return '$normalized/$right';
   }
 }
