@@ -1,22 +1,81 @@
+final class Site {
+  const Site({required this.id, required this.name, required this.city});
+  final String id;
+  final String name;
+  final String? city;
+  factory Site.fromJson(Map<String, Object?> j) => Site(
+    id: j['id'] as String,
+    name: j['name'] as String,
+    city: j['city'] as String?,
+  );
+}
+
 final class User {
-  const User({required this.id, required this.name, required this.email, required this.role});
-  final String id, name, email, role;
-  factory User.fromJson(Map<String,Object?> j)=>User(id:j['id'] as String,name:j['name'] as String,email:j['email'] as String,role:j['role'] as String);
+  const User({
+    required this.id, required this.name, required this.email, required this.phone,
+    required this.role, required this.zone, required this.isActive, required this.has2fa,
+    required this.createdAt, required this.unreadAlerts, required this.sites,
+  });
+  final String id, name, email, role, createdAt;
+  final String? phone, zone;
+  final bool isActive, has2fa;
+  final int unreadAlerts;
+  final List<Site> sites;
+  factory User.fromJson(Map<String, Object?> j) => User(
+    id: j['id'] as String, name: j['name'] as String, email: j['email'] as String,
+    phone: j['phone'] as String?, role: j['role'] as String, zone: j['zone'] as String?,
+    isActive: j['is_active'] as bool, has2fa: j['has_2fa'] as bool,
+    createdAt: j['created_at'] as String, unreadAlerts: j['unread_alerts'] as int,
+    sites: (j['sites'] as List).map((e) => Site.fromJson(Map<String, Object?>.from(e as Map))).toList(growable: false),
+  );
 }
+
 final class Kit {
-  const Kit({required this.id,required this.serialNumber,required this.name,required this.status,required this.devicesCount});
-  final String id,serialNumber,status; final String? name; final int devicesCount;
-  factory Kit.fromJson(Map<String,Object?> j)=>Kit(id:j['id'] as String,serialNumber:j['serial_number'] as String,name:j['name'] as String?,status:j['status'] as String,devicesCount:j['devices_count'] as int);
-  String get displayName => name?.trim().isNotEmpty==true ? name! : serialNumber;
+  const Kit({
+    required this.id, required this.serialNumber, required this.name, required this.siteLabel,
+    required this.type, required this.status, required this.installedAt, required this.activatedAt,
+    required this.devicesCount,
+  });
+  final String id, serialNumber, status;
+  final String? name, siteLabel, type, installedAt, activatedAt;
+  final int devicesCount;
+  factory Kit.fromJson(Map<String, Object?> j) => Kit(
+    id: j['id'] as String, serialNumber: j['serial_number'] as String,
+    name: j['name'] as String?, siteLabel: j['site_label'] as String?, type: j['type'] as String?,
+    status: j['status'] as String, installedAt: j['installed_at'] as String?,
+    activatedAt: j['activated_at'] as String?, devicesCount: j['devices_count'] as int,
+  );
+  String get displayName => name?.trim().isNotEmpty == true ? name! : serialNumber;
 }
+
 final class Device {
-  const Device({required this.id,required this.kitId,required this.deviceUid,required this.name,required this.type,required this.status,required this.state,required this.isActive,required this.room,required this.currentPower,required this.energyKwh});
-  final String id,kitId,deviceUid,type,status,state; final String? name,room; final bool isActive; final num? currentPower,energyKwh;
-  factory Device.fromJson(Map<String,Object?> j)=>Device(id:j['id'] as String,kitId:j['kit_id'] as String,deviceUid:j['device_uid'] as String,name:j['name'] as String?,room:j['room'] as String?,type:j['type'] as String,status:j['status'] as String,state:j['state'] as String,isActive:j['is_active'] as bool,currentPower:j['current_power'] as num?,energyKwh:j['energy_kwh'] as num?);
-  String get displayName => name?.trim().isNotEmpty==true ? name! : deviceUid;
+  const Device({
+    required this.id, required this.kitId, required this.deviceUid, required this.name,
+    required this.room, required this.icon, required this.type, required this.status,
+    required this.state, required this.mode, required this.isActive, required this.isLeader,
+    required this.firmwareVersion, required this.lastSeenAt, required this.currentPower,
+    required this.energyKwh,
+  });
+  final String id, kitId, deviceUid, type, status, state, mode;
+  final String? name, room, icon, firmwareVersion, lastSeenAt;
+  final bool isActive, isLeader;
+  final num? currentPower, energyKwh;
+  factory Device.fromJson(Map<String, Object?> j) => Device(
+    id: j['id'] as String, kitId: j['kit_id'] as String, deviceUid: j['device_uid'] as String,
+    name: j['name'] as String?, room: j['room'] as String?, icon: j['icon'] as String?,
+    type: j['type'] as String, status: j['status'] as String, state: j['state'] as String,
+    mode: j['mode'] as String, isActive: j['is_active'] as bool, isLeader: j['is_leader'] as bool,
+    firmwareVersion: j['firmware_version'] as String?, lastSeenAt: j['last_seen_at'] as String?,
+    currentPower: j['current_power'] as num?, energyKwh: j['energy_kwh'] as num?,
+  );
+  String get displayName => name?.trim().isNotEmpty == true ? name! : deviceUid;
 }
+
 enum DeviceCommandPhase { idle, pending, confirmed, error }
+
 final class DeviceCommandState {
- const DeviceCommandState(this.phase,{this.device,this.message});
- final DeviceCommandPhase phase; final Device? device; final String? message;
+  const DeviceCommandState(this.phase, {this.device, this.message});
+  final DeviceCommandPhase phase;
+  final Device? device;
+  final String? message;
 }
