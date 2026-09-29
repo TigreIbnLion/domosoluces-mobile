@@ -22,6 +22,24 @@ DELETE /auth/sessions/{tokenId}
 
 Le Mobile DOIT utiliser /auth/login. La route historique POST /login n'est pas contractuelle Mobile.
 
+### GET /auth/me — schema V1 exact
+Wrapper: aucun wrapper additionnel.
+
+Champs:
+- id: UUID
+- name: string
+- email: string
+- phone: string|null
+- role: string
+- zone: string|null
+- is_active: boolean
+- has_2fa: boolean
+- created_at: date YYYY-MM-DD
+- unread_alerts: integer pour un client
+- sites: tableau charge par cet endpoint; chaque entree contient exactement id, name, city
+
+Aucun password, token ou secret 2FA n'est retourne.
+
 ## Client
 Toutes les routes suivantes exigent auth:sanctum et role client.
 
@@ -33,6 +51,58 @@ POST /client/devices/{device}/on
 POST /client/devices/{device}/off
 GET /client/devices/{device}/status
 PUT /client/devices/{device}/config
+
+## Schemas JSON Mobile V1
+
+### Kit V1
+Champs exacts:
+- id: UUID
+- serial_number: string
+- name: string|null
+- site_label: string|null
+- type: string|null
+- status: string
+- installed_at: ISO-8601|null
+- activated_at: ISO-8601|null
+- devices_count: integer
+
+GET /client/kits:
+`{ "kits": [KitV1, ...] }`
+
+GET /client/kits/{kit}:
+`{ "kit": KitV1, "devices": [DeviceV1, ...] }`
+
+GET /client/kits/{kit}/devices:
+`{ "kit": KitV1, "devices": [DeviceV1, ...] }`
+
+### Device V1
+Champs exacts:
+- id: UUID
+- kit_id: UUID
+- device_uid: string
+- name: string|null
+- room: string|null
+- icon: string|null
+- type: prise|interrupteur|dismatique|relais
+- status: online|offline|error|updating
+- state: on|off
+- mode: provision|smart|normal|error
+- is_active: boolean
+- is_leader: boolean
+- firmware_version: string|null
+- last_seen_at: ISO-8601|null
+- current_power: number|null, watts
+- energy_kwh: number|null, kWh
+
+Les champs name, room et icon proviennent de la configuration locale serveur. Aucun credential MQTT, IP, MAC ou metadata interne n'est contractuel Mobile.
+
+### Device Status V1
+GET /client/devices/{device}/status:
+`{ "device": DeviceV1 }`
+
+device.status represente exclusivement la connectivite/sante.
+device.state represente exclusivement le dernier etat physique confirme connu du serveur.
+L'envoi d'une commande HTTP/MQTT ne modifie jamais device.state; seule une confirmation equipment valide (ACK/state) peut le faire.
 
 ## Commande equipement
 Une reponse HTTP de commande signifie commande acceptee/publiee, pas etat physique confirme.
