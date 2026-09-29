@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../core/network/api_client.dart';
+import '../core/errors/app_exception.dart';
 import '../core/storage/token_store.dart';
 import '../data/repositories/auth_repository.dart';
 import '../data/repositories/client_repository.dart';
@@ -21,8 +22,10 @@ final class AuthController extends AsyncNotifier<User?> {
     if (!await repo.hasSession()) return null;
     try {
       return await repo.me();
-    } catch (_) {
+    } on UnauthorizedException {
       return null;
+    } catch (_) {
+      rethrow;
     }
   }
 
