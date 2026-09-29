@@ -25,9 +25,7 @@ final class AuthRepository {
   Future<User> me() async {
     final data = await _api.get('/auth/me');
     final json = _map(data);
-    final candidate = json['user'] is Map ? json['user'] : json;
-    if (candidate is! Map) throw UnexpectedResponseException('Profil API invalide.', details: data);
-    return User.fromJson(Map<String, Object?>.from(candidate));
+    return User.fromJson(json);
   }
 
   Future<void> logout() async {
