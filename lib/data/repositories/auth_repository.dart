@@ -34,6 +34,30 @@ final class AuthRepository {
     try { await _api.post('/auth/logout'); } finally { await _tokens.clear(); }
   }
 
+  Future<void> logoutAll() async {
+    try { await _api.post('/auth/logout-all'); } finally { await _tokens.clear(); }
+  }
+
+  Future<User> updateProfile(Map<String, Object?> payload) async {
+    final data = await _api.put('/auth/profile', data: payload);
+    final json = _map(data);
+    final candidate = json['user'] is Map ? json['user'] : json;
+    if (candidate is! Map) {
+      throw UnexpectedResponseException('Profil API invalide.', details: data);
+    }
+    return User.fromJson(Map<String, Object?>.from(candidate));
+  }
+
+  Future<void> updatePassword(Map<String, Object?> payload) async {
+    await _api.put('/auth/password', data: payload);
+  }
+
+  Future<Object?> sessions() => _api.get('/auth/sessions');
+
+  Future<void> revokeSession(String tokenId) async {
+    await _api.delete('/auth/sessions/${Uri.encodeComponent(tokenId)}');
+  }
+
   Future<bool> hasSession() async => (await _tokens.read())?.isNotEmpty == true;
 
   Map<String, Object?> _map(Object? data) {
