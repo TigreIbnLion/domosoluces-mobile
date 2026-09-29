@@ -52,7 +52,11 @@ final class DeviceCommandController
       const DeviceCommandState(DeviceCommandPhase.idle);
 
   Future<void> execute({required bool turnOn}) async {
-    state = const AsyncData(DeviceCommandState(DeviceCommandPhase.pending));
+    final previousDevice = state.value?.device;
+    state = AsyncData(DeviceCommandState(
+      DeviceCommandPhase.pending,
+      device: previousDevice,
+    ));
     try {
       final result = await ref.read(clientRepositoryProvider)
           .commandAndConfirm(arg, turnOn: turnOn);
