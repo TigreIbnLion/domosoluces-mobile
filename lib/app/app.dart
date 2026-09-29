@@ -5,8 +5,9 @@ import '../core/errors/app_exception.dart';
 import 'app_dependencies.dart';
 
 final routerProvider = Provider<GoRouter>((ref) => GoRouter(
-  initialLocation: '/login',
+  initialLocation: '/splash',
   routes: [
+    GoRoute(path: '/splash', builder: (_, __) => const SessionGate()),
     GoRoute(path: '/login', builder: (_, __) => const LoginPage()),
     GoRoute(path: '/home', builder: (_, __) => const HomePage()),
   ],
@@ -21,6 +22,20 @@ final class DomosolucesApp extends ConsumerWidget {
     theme: ThemeData(useMaterial3: true, colorSchemeSeed: const Color(0xFFF57C00)),
     routerConfig: ref.watch(routerProvider),
   );
+}
+
+final class SessionGate extends ConsumerWidget {
+  const SessionGate({super.key});
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final auth = ref.watch(authControllerProvider);
+    ref.listen(authControllerProvider, (_, next) {
+      next.whenData((user) {
+        if (context.mounted) context.go(user == null ? '/login' : '/home');
+      });
+    });
+    return const Scaffold(body: Center(child: CircularProgressIndicator()));
+  }
 }
 
 final class LoginPage extends ConsumerStatefulWidget {
