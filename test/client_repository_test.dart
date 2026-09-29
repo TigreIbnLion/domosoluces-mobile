@@ -5,6 +5,7 @@ import 'package:domosoluces_mobile/core/network/api_client.dart';
 import 'package:domosoluces_mobile/core/storage/token_store.dart';
 import 'package:domosoluces_mobile/data/repositories/client_repository.dart';
 import 'package:domosoluces_mobile/domain/models/models.dart';
+import 'package:domosoluces_mobile/core/errors/app_exception.dart';
 
 final class TokenStoreStub implements TokenStore {
   @override Future<void> clear() async {}
@@ -39,6 +40,15 @@ void main() {
     final kits = await repository.kits();
     expect(kits.single.id, 'kit-1');
     expect(kits.single.displayName, 'Maison');
+  });
+
+  test('rejected command propagates API validation failure', () async {
+    adapter.onPost('client/devices/dev-1/on', (server) =>
+        server.reply(422, {'message': 'Commande impossible'}));
+    await expectLater(
+      repository.commandAndConfirm('dev-1', turnOn: true, interval: Duration.zero),
+      throwsA(isA<ValidationException>()),
+    );
   });
 
   test('accepted ON command waits for confirmed server state', () async {
