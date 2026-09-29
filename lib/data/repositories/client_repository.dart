@@ -11,8 +11,9 @@ final class ClientRepository {
  Future<void> sendCommand(String id,{required bool turnOn})=>_api.post('/client/devices/$id/${turnOn?'on':'off'}');
  Future<DeviceCommandState> commandAndConfirm(String id,{required bool turnOn,Duration timeout=const Duration(seconds:15),Duration interval=const Duration(seconds:1)}) async {
   await sendCommand(id,turnOn:turnOn); final deadline=DateTime.now().add(timeout); final expected=turnOn?'on':'off';
-  while(DateTime.now().isBefore(deadline)){ await Future<void>.delayed(interval); try { final d=await status(id); if(d.state==expected)return DeviceCommandState(DeviceCommandPhase.confirmed,device:d); } on NetworkException {} on ServerException {} }
-  return const DeviceCommandState(DeviceCommandPhase.error,message:'Commande acceptée, mais état physique non confirmé avant expiration.');
+  Device? lastObserved;
+  while(DateTime.now().isBefore(deadline)){ await Future<void>.delayed(interval); try { final d=await status(id); lastObserved=d; if(d.state==expected)return DeviceCommandState(DeviceCommandPhase.confirmed,device:d); } on NetworkException {} on ServerException {} }
+  return DeviceCommandState(DeviceCommandPhase.error,device:lastObserved,message:'Commande acceptée, mais état physique non confirmé avant expiration.');
  }
  Map<String,Object?> _map(Object? x){if(x is! Map)throw UnexpectedResponseException('Réponse API invalide.',details:x);return Map<String,Object?>.from(x);}
  Map<String,Object?> _object(Map<String,Object?> m,String k){final x=m[k];if(x is! Map)throw UnexpectedResponseException('Objet $k invalide.',details:m);return Map<String,Object?>.from(x);}
