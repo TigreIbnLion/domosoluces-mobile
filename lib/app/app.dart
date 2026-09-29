@@ -15,7 +15,78 @@ final routerProvider=Provider<GoRouter>((ref)=>GoRouter(initialLocation:'/splash
 final class DomosolucesApp extends ConsumerWidget{const DomosolucesApp({super.key});@override Widget build(BuildContext c,WidgetRef r)=>MaterialApp.router(debugShowCheckedModeBanner:false,title:'DOMOSOLUCES',theme:ThemeData(useMaterial3:true,colorSchemeSeed:const Color(0xFFF57C00)),routerConfig:r.watch(routerProvider));}
 final class SessionGate extends ConsumerWidget{const SessionGate({super.key});@override Widget build(BuildContext c,WidgetRef r){final a=r.watch(authControllerProvider);r.listen(authControllerProvider,(_,n)=>n.whenData((u){if(c.mounted)c.go(u==null?'/login':'/home');}));return Scaffold(body:Center(child:a.hasError?Text(a.error is AppException?(a.error! as AppException).message:'Connexion impossible'):const CircularProgressIndicator()));}}
 final class LoginPage extends ConsumerStatefulWidget{const LoginPage({super.key});@override ConsumerState<LoginPage> createState()=>_LoginPageState();}
-final class _LoginPageState extends ConsumerState<LoginPage>{final email=TextEditingController(),password=TextEditingController(),key=GlobalKey<FormState>();@override void dispose(){email.dispose();password.dispose();super.dispose();}Future<void> submit()async{if(!key.currentState!.validate())return;await ref.read(authControllerProvider.notifier).login(email.text,password.text);if(mounted&&ref.read(authControllerProvider).value!=null)context.go('/home');}@override Widget build(BuildContext c){final a=ref.watch(authControllerProvider);return Scaffold(body:SafeArea(child:Center(child:ConstrainedBox(constraints:const BoxConstraints(maxWidth:420),child:Padding(padding:const EdgeInsets.all(24),child:Form(key:key,child:Column(mainAxisSize:MainAxisSize.min,crossAxisAlignment:CrossAxisAlignment.stretch,children:[Text('DOMOSOLUCES',style:Theme.of(c).textTheme.headlineMedium),const SizedBox(height:24),TextFormField(controller:email,decoration:const InputDecoration(labelText:'Email'),validator:(v)=>v==null||!v.contains('@')?'Email invalide':null),const SizedBox(height:12),TextFormField(controller:password,obscureText:true,decoration:const InputDecoration(labelText:'Mot de passe'),validator:(v)=>v?.isNotEmpty==true?null:'Mot de passe requis'),if(a.hasError)Padding(padding:const EdgeInsets.only(top:12),child:Text(a.error is AppException?(a.error! as AppException).message:'Erreur de connexion')),const SizedBox(height:20),FilledButton(onPressed:a.isLoading?null:submit,child:Text(a.isLoading?'Connexion…':'Se connecter'))]))))))));}}
+final class _LoginPageState extends ConsumerState<LoginPage> {
+  final email = TextEditingController();
+  final password = TextEditingController();
+  final key = GlobalKey<FormState>();
+
+  @override
+  void dispose() {
+    email.dispose();
+    password.dispose();
+    super.dispose();
+  }
+
+  Future<void> submit() async {
+    if (!key.currentState!.validate()) return;
+    await ref.read(authControllerProvider.notifier).login(email.text, password.text);
+    if (mounted && ref.read(authControllerProvider).value != null) {
+      context.go('/home');
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final auth = ref.watch(authControllerProvider);
+    return Scaffold(
+      body: SafeArea(
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 420),
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Form(
+                key: key,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Text('DOMOSOLUCES', style: Theme.of(context).textTheme.headlineMedium),
+                    const SizedBox(height: 24),
+                    TextFormField(
+                      controller: email,
+                      decoration: const InputDecoration(labelText: 'Email'),
+                      validator: (v) => v == null || !v.contains('@') ? 'Email invalide' : null,
+                    ),
+                    const SizedBox(height: 12),
+                    TextFormField(
+                      controller: password,
+                      obscureText: true,
+                      decoration: const InputDecoration(labelText: 'Mot de passe'),
+                      validator: (v) => v?.isNotEmpty == true ? null : 'Mot de passe requis',
+                    ),
+                    if (auth.hasError)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 12),
+                        child: Text(auth.error is AppException
+                            ? (auth.error! as AppException).message
+                            : 'Erreur de connexion'),
+                      ),
+                    const SizedBox(height: 20),
+                    FilledButton(
+                      onPressed: auth.isLoading ? null : submit,
+                      child: Text(auth.isLoading ? 'Connexion…' : 'Se connecter'),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
 final class HomePage extends ConsumerStatefulWidget{const HomePage({super.key});@override ConsumerState<HomePage> createState()=>_HomePageState();}
 final class _HomePageState extends ConsumerState<HomePage>{late Future<List<Kit>> future;@override void initState(){super.initState();future=ref.read(clientRepositoryProvider).kits();}Future<void> reload()async{setState(()=>future=ref.read(clientRepositoryProvider).kits());await future;}@override Widget build(BuildContext c)=>Scaffold(appBar:AppBar(title:const Text('Mes kits'),actions:[IconButton(onPressed:()async{await ref.read(authControllerProvider.notifier).logout();if(c.mounted)c.go('/login');},icon:const Icon(Icons.logout))]),body:FutureBuilder<List<Kit>>(future:future,builder:(c,s){if(s.connectionState!=ConnectionState.done)return const Center(child:CircularProgressIndicator());if(s.hasError)return ErrorView(error:s.error,onRetry:reload);final xs=s.data??[];if(xs.isEmpty)return const Center(child:Text('Aucun kit disponible.'));return RefreshIndicator(onRefresh:reload,child:ListView.builder(padding:const EdgeInsets.all(16),itemCount:xs.length,itemBuilder:(_,i){final k=xs[i];return Card(child:ListTile(leading:const Icon(Icons.hub_outlined),title:Text(k.displayName),subtitle:Text('${k.status} • ${k.devicesCount} équipement(s)'),trailing:const Icon(Icons.chevron_right),onTap:()=>c.push('/kits/${k.id}'))); }));}));}
 final class DevicesPage extends StatelessWidget{const DevicesPage({super.key,required this.kitId});final String kitId;@override Widget build(BuildContext c)=>Consumer(builder:(c,r,_)=>Scaffold(appBar:AppBar(title:const Text('Équipements')),body:FutureBuilder<List<Device>>(future:r.read(clientRepositoryProvider).devices(kitId),builder:(c,s){if(s.connectionState!=ConnectionState.done)return const Center(child:CircularProgressIndicator());if(s.hasError)return ErrorView(error:s.error,onRetry:()=>c.pushReplacement('/kits/$kitId'));final xs=s.data??[];if(xs.isEmpty)return const Center(child:Text('Aucun équipement.'));return ListView.builder(padding:const EdgeInsets.all(16),itemCount:xs.length,itemBuilder:(_,i){final d=xs[i];return Card(child:ListTile(title:Text(d.displayName),subtitle:Text('${d.type} • ${d.status} • ${d.state}'),trailing:const Icon(Icons.chevron_right),onTap:()=>c.push('/devices/${d.id}')));});})));}
