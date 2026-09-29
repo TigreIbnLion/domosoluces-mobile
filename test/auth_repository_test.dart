@@ -41,7 +41,11 @@ void main() {
         'created_at': '2026-09-29',
         'unread_alerts': 0,
       },
-    }));
+    }), data: {
+      'email': 'client@example.test',
+      'password': 'password',
+      'device_name': 'DOMOSOLUCES Mobile',
+    });
     final user = await repository.login(
       email: 'client@example.test',
       password: 'password',
