@@ -12,7 +12,7 @@ final class ClientRepository {
  Future<DeviceCommandState> commandAndConfirm(String id,{required bool turnOn,Duration timeout=const Duration(seconds:15),Duration interval=const Duration(seconds:1)}) async {
   await sendCommand(id,turnOn:turnOn); final deadline=DateTime.now().add(timeout); final expected=turnOn?'on':'off';
   Device? lastObserved;
-  while(DateTime.now().isBefore(deadline)){ await Future<void>.delayed(interval); try { final d=await status(id); lastObserved=d; if(d.state==expected)return DeviceCommandState(DeviceCommandPhase.confirmed,device:d); } on NetworkException {} on ServerException {} }
+  while(DateTime.now().isBefore(deadline)){ await Future<void>.delayed(interval); try { final d=await status(id); lastObserved=d; if(d.state==expected)return DeviceCommandState(DeviceCommandPhase.confirmed,device:d); } on NetworkException { /* Retry transient connectivity until deadline. */ } on ServerException { /* Retry transient server failure until deadline. */ } }
   return DeviceCommandState(DeviceCommandPhase.error,device:lastObserved,message:'Commande acceptée, mais état physique non confirmé avant expiration.');
  }
  Map<String,Object?> _map(Object? x){if(x is! Map)throw UnexpectedResponseException('Réponse API invalide.',details:x);return Map<String,Object?>.from(x);}
