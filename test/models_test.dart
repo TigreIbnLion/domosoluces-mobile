@@ -7,7 +7,11 @@ void main() {
       'id': 'kit-1',
       'serial_number': 'KIT-001',
       'name': 'Maison',
+      'site_label': 'Maison Abidjan',
+      'type': null,
       'status': 'active',
+      'installed_at': null,
+      'activated_at': null,
       'devices_count': 2,
     });
     expect(kit.id, 'kit-1');
@@ -22,10 +26,15 @@ void main() {
       'device_uid': 'PRISE-001',
       'name': 'Prise salon',
       'room': 'Salon',
+      'icon': null,
       'type': 'prise',
       'status': 'online',
       'state': 'on',
+      'mode': 'normal',
       'is_active': true,
+      'is_leader': false,
+      'firmware_version': '1.0.0',
+      'last_seen_at': '2026-09-29T04:00:00Z',
       'current_power': 12.5,
       'energy_kwh': 1.2,
     });
@@ -40,7 +49,14 @@ void main() {
       'id': 'user-1',
       'name': 'Client',
       'email': 'client@example.test',
+      'phone': null,
       'role': 'client',
+      'zone': null,
+      'is_active': true,
+      'has_2fa': false,
+      'created_at': '2026-09-29',
+      'unread_alerts': 0,
+      'sites': [],
     });
     expect(user.id, 'user-1');
     expect(user.role, 'client');
