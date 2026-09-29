@@ -2,128 +2,23 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../core/errors/app_exception.dart';
+import '../domain/models/models.dart';
 import 'app_dependencies.dart';
 
-final routerProvider = Provider<GoRouter>((ref) => GoRouter(
-  initialLocation: '/splash',
-  routes: [
-    GoRoute(path: '/splash', builder: (_, __) => const SessionGate()),
-    GoRoute(path: '/login', builder: (_, __) => const LoginPage()),
-    GoRoute(path: '/home', builder: (_, __) => const HomePage()),
-  ],
-));
-
-final class DomosolucesApp extends ConsumerWidget {
-  const DomosolucesApp({super.key});
-  @override
-  Widget build(BuildContext context, WidgetRef ref) => MaterialApp.router(
-    debugShowCheckedModeBanner: false,
-    title: 'DOMOSOLUCES',
-    theme: ThemeData(useMaterial3: true, colorSchemeSeed: const Color(0xFFF57C00)),
-    routerConfig: ref.watch(routerProvider),
-  );
-}
-
-final class SessionGate extends ConsumerWidget {
-  const SessionGate({super.key});
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final auth = ref.watch(authControllerProvider);
-    ref.listen(authControllerProvider, (_, next) {
-      next.whenData((user) {
-        if (context.mounted) context.go(user == null ? '/login' : '/home');
-      });
-    });
-    return const Scaffold(body: Center(child: CircularProgressIndicator()));
-  }
-}
-
-final class LoginPage extends ConsumerStatefulWidget {
-  const LoginPage({super.key});
-  @override
-  ConsumerState<LoginPage> createState() => _LoginPageState();
-}
-
-final class _LoginPageState extends ConsumerState<LoginPage> {
-  final email = TextEditingController();
-  final password = TextEditingController();
-  final formKey = GlobalKey<FormState>();
-
-  @override
-  void dispose() { email.dispose(); password.dispose(); super.dispose(); }
-
-  Future<void> submit() async {
-    if (!formKey.currentState!.validate()) return;
-    await ref.read(authControllerProvider.notifier).login(email.text, password.text);
-    if (!mounted) return;
-    final state = ref.read(authControllerProvider);
-    if (state.hasValue && state.value != null) context.go('/home');
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final auth = ref.watch(authControllerProvider);
-    final error = auth.error;
-    return Scaffold(
-      body: SafeArea(child: Center(child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 420),
-        child: Padding(padding: const EdgeInsets.all(24), child: Form(
-          key: formKey,
-          child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-            Text('DOMOSOLUCES', style: Theme.of(context).textTheme.headlineMedium),
-            const SizedBox(height: 24),
-            TextFormField(controller: email, keyboardType: TextInputType.emailAddress,
-              decoration: const InputDecoration(labelText: 'Email'),
-              validator: (v) => v == null || !v.contains('@') ? 'Email invalide' : null),
-            const SizedBox(height: 12),
-            TextFormField(controller: password, obscureText: true,
-              decoration: const InputDecoration(labelText: 'Mot de passe'),
-              validator: (v) => v == null || v.isEmpty ? 'Mot de passe requis' : null),
-            if (error != null) Padding(padding: const EdgeInsets.only(top: 12),
-              child: Text(error is AppException ? error.message : 'Une erreur est survenue.')),
-            const SizedBox(height: 20),
-            FilledButton(onPressed: auth.isLoading ? null : submit,
-              child: auth.isLoading ? const SizedBox.square(dimension: 20, child: CircularProgressIndicator()) : const Text('Se connecter')),
-          ]),
-        )),
-      ))),
-    );
-  }
-}
-
-final class HomePage extends ConsumerWidget {
-  const HomePage({super.key});
-  @override
-  Widget build(BuildContext context, WidgetRef ref) => Scaffold(
-    appBar: AppBar(title: const Text('Mes kits'), actions: [
-      IconButton(onPressed: () async {
-        await ref.read(authControllerProvider.notifier).logout();
-        if (context.mounted) context.go('/login');
-      }, icon: const Icon(Icons.logout)),
-    ]),
-    body: FutureBuilder(
-      future: ref.read(clientRepositoryProvider).kits(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState != ConnectionState.done) return const Center(child: CircularProgressIndicator());
-        if (snapshot.hasError) return Center(child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Text(snapshot.error is AppException ? (snapshot.error! as AppException).message : 'Chargement impossible.')));
-        final kits = snapshot.data ?? const [];
-        if (kits.isEmpty) return const Center(child: Text('Aucun kit disponible.'));
-        return RefreshIndicator(
-          onRefresh: () async => context.go('/home'),
-          child: ListView.separated(
-            padding: const EdgeInsets.all(16),
-            itemCount: kits.length,
-            separatorBuilder: (_, __) => const SizedBox(height: 8),
-            itemBuilder: (_, index) => Card(child: ListTile(
-              leading: const Icon(Icons.hub_outlined),
-              title: Text('Kit ${index + 1}'),
-              subtitle: Text(kits[index].raw.toString(), maxLines: 3, overflow: TextOverflow.ellipsis),
-            )),
-          ),
-        );
-      },
-    ),
-  );
-}
+final routerProvider=Provider<GoRouter>((ref)=>GoRouter(initialLocation:'/splash',routes:[
+ GoRoute(path:'/splash',builder:(_,__)=>const SessionGate()),
+ GoRoute(path:'/login',builder:(_,__)=>const LoginPage()),
+ GoRoute(path:'/home',builder:(_,__)=>const HomePage()),
+ GoRoute(path:'/kits/:kitId',builder:(_,s)=>DevicesPage(kitId:s.pathParameters['kitId']!)),
+ GoRoute(path:'/devices/:deviceId',builder:(_,s)=>DevicePage(deviceId:s.pathParameters['deviceId']!)),
+]));
+final class DomosolucesApp extends ConsumerWidget{const DomosolucesApp({super.key});@override Widget build(BuildContext c,WidgetRef r)=>MaterialApp.router(debugShowCheckedModeBanner:false,title:'DOMOSOLUCES',theme:ThemeData(useMaterial3:true,colorSchemeSeed:const Color(0xFFF57C00)),routerConfig:r.watch(routerProvider));}
+final class SessionGate extends ConsumerWidget{const SessionGate({super.key});@override Widget build(BuildContext c,WidgetRef r){final a=r.watch(authControllerProvider);r.listen(authControllerProvider,(_,n)=>n.whenData((u){if(c.mounted)c.go(u==null?'/login':'/home');}));return Scaffold(body:Center(child:a.hasError?Text(a.error is AppException?(a.error! as AppException).message:'Connexion impossible'):const CircularProgressIndicator()));}}
+final class LoginPage extends ConsumerStatefulWidget{const LoginPage({super.key});@override ConsumerState<LoginPage> createState()=>_LoginPageState();}
+final class _LoginPageState extends ConsumerState<LoginPage>{final email=TextEditingController(),password=TextEditingController(),key=GlobalKey<FormState>();@override void dispose(){email.dispose();password.dispose();super.dispose();}Future<void> submit()async{if(!key.currentState!.validate())return;await ref.read(authControllerProvider.notifier).login(email.text,password.text);if(mounted&&ref.read(authControllerProvider).value!=null)context.go('/home');}@override Widget build(BuildContext c){final a=ref.watch(authControllerProvider);return Scaffold(body:SafeArea(child:Center(child:ConstrainedBox(constraints:const BoxConstraints(maxWidth:420),child:Padding(padding:const EdgeInsets.all(24),child:Form(key:key,child:Column(mainAxisSize:MainAxisSize.min,crossAxisAlignment:CrossAxisAlignment.stretch,children:[Text('DOMOSOLUCES',style:Theme.of(c).textTheme.headlineMedium),const SizedBox(height:24),TextFormField(controller:email,decoration:const InputDecoration(labelText:'Email'),validator:(v)=>v==null||!v.contains('@')?'Email invalide':null),const SizedBox(height:12),TextFormField(controller:password,obscureText:true,decoration:const InputDecoration(labelText:'Mot de passe'),validator:(v)=>v?.isNotEmpty==true?null:'Mot de passe requis'),if(a.hasError)Padding(padding:const EdgeInsets.only(top:12),child:Text(a.error is AppException?(a.error! as AppException).message:'Erreur de connexion')),const SizedBox(height:20),FilledButton(onPressed:a.isLoading?null:submit,child:Text(a.isLoading?'Connexion…':'Se connecter'))]))))))));}}
+final class HomePage extends ConsumerStatefulWidget{const HomePage({super.key});@override ConsumerState<HomePage> createState()=>_HomePageState();}
+final class _HomePageState extends ConsumerState<HomePage>{late Future<List<Kit>> future;@override void initState(){super.initState();future=ref.read(clientRepositoryProvider).kits();}Future<void> reload()async{setState(()=>future=ref.read(clientRepositoryProvider).kits());await future;}@override Widget build(BuildContext c)=>Scaffold(appBar:AppBar(title:const Text('Mes kits'),actions:[IconButton(onPressed:()async{await ref.read(authControllerProvider.notifier).logout();if(c.mounted)c.go('/login');},icon:const Icon(Icons.logout))]),body:FutureBuilder<List<Kit>>(future:future,builder:(c,s){if(s.connectionState!=ConnectionState.done)return const Center(child:CircularProgressIndicator());if(s.hasError)return ErrorView(error:s.error,onRetry:reload);final xs=s.data??[];if(xs.isEmpty)return const Center(child:Text('Aucun kit disponible.'));return RefreshIndicator(onRefresh:reload,child:ListView.builder(padding:const EdgeInsets.all(16),itemCount:xs.length,itemBuilder:(_,i){final k=xs[i];return Card(child:ListTile(leading:const Icon(Icons.hub_outlined),title:Text(k.displayName),subtitle:Text('${k.status} • ${k.devicesCount} équipement(s)'),trailing:const Icon(Icons.chevron_right),onTap:()=>c.push('/kits/${k.id}'))); }));}));}
+final class DevicesPage extends StatelessWidget{const DevicesPage({super.key,required this.kitId});final String kitId;@override Widget build(BuildContext c)=>Consumer(builder:(c,r,_)=>Scaffold(appBar:AppBar(title:const Text('Équipements')),body:FutureBuilder<List<Device>>(future:r.read(clientRepositoryProvider).devices(kitId),builder:(c,s){if(s.connectionState!=ConnectionState.done)return const Center(child:CircularProgressIndicator());if(s.hasError)return ErrorView(error:s.error,onRetry:()=>c.pushReplacement('/kits/$kitId'));final xs=s.data??[];if(xs.isEmpty)return const Center(child:Text('Aucun équipement.'));return ListView.builder(padding:const EdgeInsets.all(16),itemCount:xs.length,itemBuilder:(_,i){final d=xs[i];return Card(child:ListTile(title:Text(d.displayName),subtitle:Text('${d.type} • ${d.status} • ${d.state}'),trailing:const Icon(Icons.chevron_right),onTap:()=>c.push('/devices/${d.id}')));});})));}
+final class DevicePage extends ConsumerStatefulWidget{const DevicePage({super.key,required this.deviceId});final String deviceId;@override ConsumerState<DevicePage> createState()=>_DevicePageState();}
+final class _DevicePageState extends ConsumerState<DevicePage>{@override void initState(){super.initState();Future.microtask(()=>ref.read(deviceCommandProvider(widget.deviceId).notifier).refresh());}@override Widget build(BuildContext c){final a=ref.watch(deviceCommandProvider(widget.deviceId));return Scaffold(appBar:AppBar(title:const Text('Détail équipement')),body:a.when(loading:()=>const Center(child:CircularProgressIndicator()),error:(e,_)=>ErrorView(error:e,onRetry:()=>ref.read(deviceCommandProvider(widget.deviceId).notifier).refresh()),data:(x){final d=x.device;final pending=x.phase==DeviceCommandPhase.pending;if(d==null&&x.phase==DeviceCommandPhase.idle)return const Center(child:CircularProgressIndicator());return ListView(padding:const EdgeInsets.all(24),children:[Text(d?.displayName??'Équipement',style:Theme.of(c).textTheme.headlineSmall),const SizedBox(height:12),Text('Connectivité : ${d?.status??'—'}'),Text('État confirmé : ${d?.state??'—'}'),if(d?.room!=null)Text('Pièce : ${d!.room}'),if(d?.currentPower!=null)Text('Puissance : ${d!.currentPower} W'),if(d?.energyKwh!=null)Text('Énergie : ${d!.energyKwh} kWh'),const SizedBox(height:24),if(pending)const Row(children:[CircularProgressIndicator(),SizedBox(width:16),Expanded(child:Text('Commande envoyée — attente de confirmation physique…'))]),if(x.phase==DeviceCommandPhase.confirmed)const Text('État physique confirmé par le serveur.'),if(x.phase==DeviceCommandPhase.error)Text(x.message??'Confirmation impossible.'),const SizedBox(height:16),Row(children:[Expanded(child:FilledButton(onPressed:pending?null:()=>ref.read(deviceCommandProvider(widget.deviceId).notifier).execute(turnOn:true),child:const Text('ON'))),const SizedBox(width:12),Expanded(child:OutlinedButton(onPressed:pending?null:()=>ref.read(deviceCommandProvider(widget.deviceId).notifier).execute(turnOn:false),child:const Text('OFF')))])]);}));}}
+final class ErrorView extends StatelessWidget{const ErrorView({super.key,required this.error,required this.onRetry});final Object? error;final Future<void> Function() onRetry;@override Widget build(BuildContext c)=>Center(child:Padding(padding:const EdgeInsets.all(24),child:Column(mainAxisSize:MainAxisSize.min,children:[Text(error is AppException?(error! as AppException).message:'Chargement impossible.'),const SizedBox(height:12),FilledButton(onPressed:()=>onRetry(),child:const Text('Réessayer'))])));}
