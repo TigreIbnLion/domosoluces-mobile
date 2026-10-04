@@ -25,16 +25,16 @@ final class ApiClient {
   final Dio _dio;
   final TokenStore _tokens;
 
-  Future<Object?> get(String path) => _request('GET', path);
+  Future<Object?> get(String path, {Map<String, Object?>? queryParameters}) => _request('GET', path, queryParameters: queryParameters);
   Future<Object?> post(String path, {Object? data}) => _request('POST', path, data: data);
   Future<Object?> put(String path, {Object? data}) => _request('PUT', path, data: data);
   Future<Object?> delete(String path) => _request('DELETE', path);
 
-  Future<Object?> _request(String method, String path, {Object? data}) async {
+  Future<Object?> _request(String method, String path, {Object? data, Map<String, Object?>? queryParameters}) async {
     final relativePath = path.startsWith('/') ? path.substring(1) : path;
     try {
       final response = await _dio.request<Object?>(
-        relativePath, data: data, options: Options(method: method));
+        relativePath, data: data, queryParameters: queryParameters, options: Options(method: method));
       return response.data;
     } on DioException catch (error) {
       final response = error.response;
