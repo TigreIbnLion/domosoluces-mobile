@@ -220,7 +220,7 @@ Body :
 - `days`: tableau d'entiers 0..6.
 - `is_active`: boolean|null, défaut true.
 
-Réponse création 201 : `{message:string,schedule:ScheduleV1}`.
+Réponse création 201 : `{message:string,schedule:ScheduleV1}`. Attention : l'entrée `action` est `on|off`, mais `ScheduleV1.action` est réellement sérialisé en **boolean** (`true`=ON, `false`=OFF) par le modèle actuel.
 ScheduleV1 est la sérialisation Laravel de DeviceSchedule : `id:UUID, device_id:UUID, created_by:UUID, name:string|null, action:boolean, cron_expression:string|null, time_of_day:string, days_of_week:integer[], is_active:boolean, synced_to_device:boolean, last_executed_at:datetime|null, created_at:datetime, updated_at:datetime`.
 Suppression : `DELETE /client/schedules/{schedule}` → `{message:string}`. Pas de route UPDATE V1.
 
@@ -292,7 +292,7 @@ Réponse update : `{message:string,preferences:PreferenceV1}`.
 `GET /client/tickets` → `{tickets: LaravelPaginator<TicketV1>,stats:{open:integer,resolved:integer}}`, pagination fixe 15.
 TicketV1 : `id:UUID,ticket_number:string,subject:string,category:string,category_label:string,priority:string,priority_label:string,status:string,status_label:string,client:object|null,kit:{name:string,serial:string}|null,assigned_to:string|null,assigned_to_id:UUID|null,response_time:mixed,resolution_time:mixed,satisfaction:integer|null,last_message:{body:string,sender:string|null,time_ago:string}|null,created_at:datetime,updated_at:datetime`.
 Détail `GET /client/tickets/{ticket}` → `{ticket:TicketV1}` avec `messages: MessageV1[]`.
-MessageV1 : `id:UUID,body:string,sender_name:string|null,sender_role:string|null,is_from_client:boolean,is_internal_note:boolean,is_read:boolean,attachments:array,time_ago:string,created_at:datetime`.
+MessageV1 : `id:UUID,body:string,sender_name:string|null,sender_role:string|null,is_from_client:boolean,is_internal_note:boolean,is_read:boolean,attachments:array,time_ago:string,created_at:datetime`. Pour un client, `messages` contient **uniquement les messages publics** (`is_internal_note=false`) ; les notes internes support ne font jamais partie du contrat Mobile.
 
 Création `POST /client/tickets` : `subject` requis max150, `description` requis max2000, `category=paiement|abonnement|equipement_offline|equipement_defectueux|application|autre`, `kit_id` UUID nullable, `priority=low|medium|high` optionnelle. Réponse 201 `{message:string,ticket:TicketV1}`.
 Réponse client `POST /client/tickets/{ticket}/messages` body `{body:string max3000}`; ticket résolu →422.
@@ -303,7 +303,7 @@ Le Mobile client n'a pas de route de suppression/fermeture directe de ticket.
 
 Ces routes sont exposables au Mobile V1 car elles sont déjà protégées par `auth:sanctum + role:client` et vérifient la propriété des ressources.
 
-`GET /client/plans` : plans disponibles au client (schéma fourni par PlanController).
+`GET /client/plans` → `{plans: PlanV1[]}`. PlanV1 contient exactement : `id:UUID,name:string,slug:string,price:number|string,formatted_price:string,quota_total:integer|null,max_extra_devices:integer|null,is_custom:boolean,trial_days:integer|null,description:string|null,features:array`.
 `GET /client/subscriptions` → `{subscriptions: SubscriptionV1[]}`.
 `GET /client/subscriptions/{sub}` → `{subscription: SubscriptionV1Detailed}`.
 SubscriptionV1 : `id:UUID,kit:{id:UUID,name:string|null,serial:string}|null,plan:{id:UUID,name:string,slug:string,price:number|string,formatted_price:string}|null,status:string,pause_status:string,is_paused:boolean,starts_at:date|null,ends_at:date|null,days_remaining:integer,is_expiring:boolean,auto_renew:boolean,dunning_count:integer`.
@@ -325,3 +325,47 @@ Les statuts de paiement ne sont pas contractualisés comme enum fermé tant que 
 
 ## Règles d'autorité IoT pour les fonctions avancées
 Les exécutions de groupe, scène, timer, schedule ou automation qui publient des commandes ne constituent jamais une confirmation de `device.state`. Le Mobile doit utiliser Device Status V1 pour afficher l'état physique confirmé. Le contrat IOT_V1 reste inchangé.
+
+
+# Projection IoT Capabilities V2 — extension additive du Client V1
+
+DeviceV1 reste inchangé. Les clients ne déduisent **jamais** une capability depuis `type`, `name`, `icon`, le modèle matériel ou Keyestudio.
+
+### GET /client/devices/{device}/capabilities
+Réponse:
+- `device_id: UUID`
+- `schema_version: "2.0"`
+- `capabilities: CapabilityV2[]`
+- `values: object` indexé par capability_id; chaque valeur confirmée contient `value`, `origin`, `confirmed_at`.
+- `recovery_policy: object` indexé par capability_id.
+
+`CapabilityV2` suit IOT_V2: `id,kind,semantic,state,commands,telemetry,availability,metadata?`.
+Un device V1 sans manifeste retourne `capabilities:[]`, sans casser DeviceV1.
+
+### POST /client/devices/{device}/capability-commands
+Body exact: `{capability_id:string,command:string,value:mixed}`.
+Le serveur vérifie ownership, online/active/MODE_SMART, présence de la capability, `availability.commandable`, commande déclarée et schéma de valeur.
+Succès HTTP 202: `{message:string,command_id:UUID,status:"sent"}`.
+Ce succès signifie **publié/en attente**, jamais état confirmé. Le Mobile rafraîchit `GET .../capabilities` ou attend un mécanisme de refresh API; il ne modifie pas localement la valeur confirmée.
+422: capability/commande/valeur indisponible ou invalide.
+
+### GET /client/devices/{device}/events
+Query optionnelle: `capability_id:string`, `per_page:1..100` défaut 20.
+Réponse: `{events: LaravelPaginator<DeviceEventV2>}`.
+Event: `id,device_id,capability_id,event_type,value,unit,source,observed_at,metadata,created_at,updated_at`.
+La présence d'un event n'implique ni alerte ni commande.
+
+### POST /client/pairing/claim
+Body: `pairing_id:UUID,kit_serial:string,device_uid:string,pairing_token:string`.
+Succès: `{message,kit_id,device_id,kit_serial,device_uid}`.
+Le token est éphémère et à usage unique. Le Mobile ne transmet **aucun SSID/mot de passe Wi-Fi** à Laravel. Un kit appartenant déjà à un autre client est refusé.
+
+### Articulation DeviceV1 / CapabilitiesV2
+- `status`: santé/connectivité globale, inchangé.
+- `state:on|off`: état binaire global V1, inchangé et conservé pour compatibilité.
+- `mode`: autorité métier serveur, inchangé.
+- `capabilities/values`: fonctions avancées et leurs valeurs confirmées.
+Une capability V2 ne doit pas être inventée lorsque `capabilities[]` ne la déclare pas.
+
+### Sécurité UX
+Les capabilities `gas` et `water` issues du prototype ne doivent jamais être libellées comme dispositifs certifiés de sécurité des personnes. Les alertes métier sont distinctes des événements capteur bruts.
