@@ -89,3 +89,16 @@ final class DeviceCommandController
     });
   }
 }
+
+
+final capabilityControllerProvider=AsyncNotifierProvider.family<CapabilityController,CapabilityUiState,String>(CapabilityController.new);
+final class CapabilityController extends FamilyAsyncNotifier<CapabilityUiState,String>{
+ @override Future<CapabilityUiState> build(String deviceId) async=>CapabilityUiState(snapshot:await ref.read(clientRepositoryProvider).capabilities(deviceId));
+ Future<void> refresh() async {final current=state.value;try{final snapshot=await ref.read(clientRepositoryProvider).capabilities(arg);state=AsyncData(CapabilityUiState(snapshot:snapshot));}catch(e,st){if(current==null)state=AsyncError(e,st);else rethrow;}}
+ Future<void> execute({required String capabilityId,required String command,required Object? value}) async {
+  final current=state.value;if(current==null)return;
+  state=AsyncData(current.copyWith(phase:CapabilityCommandPhase.pending,pendingCapabilityId:capabilityId,clearMessage:true));
+  try{final confirmed=await ref.read(clientRepositoryProvider).capabilityCommandAndConfirm(arg,capabilityId:capabilityId,command:command,value:value);state=AsyncData(CapabilityUiState(snapshot:confirmed,phase:CapabilityCommandPhase.confirmed));}
+  catch(e){state=AsyncData(current.copyWith(phase:CapabilityCommandPhase.error,message:e is AppException?e.message:'Confirmation impossible.',clearPending:true));}
+ }
+}
