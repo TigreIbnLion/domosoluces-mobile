@@ -24,11 +24,16 @@ final class ClientRepository {
   final before=await capabilities(id); final previous=before.values[capabilityId]?.value;
   await sendCapabilityCommand(id,capabilityId:capabilityId,command:command,value:value);
   final deadline=DateTime.now().add(timeout);
-  while(DateTime.now().isBefore(deadline)){await Future<void>.delayed(interval);try{final current=await capabilities(id);final confirmed=current.values[capabilityId]?.value;if(confirmed!=previous&&_sameCapabilityValue(confirmed,value))return current;}on NetworkException{}on ServerException{}}
+  while(DateTime.now().isBefore(deadline)){await Future<void>.delayed(interval);try{final current=await capabilities(id);final confirmed=current.values[capabilityId]?.value;if(_sameCapabilityValue(confirmed,value))return current;}on NetworkException{}on ServerException{}}
   throw UnexpectedResponseException('Commande envoyée, mais valeur non confirmée avant expiration.');
  }
  Future<PairingClaimResult> claimPairing({required String pairingId,required String kitSerial,required String deviceUid,required String pairingToken}) async { final m=_map(await _api.post('/client/pairing/claim',data:{'pairing_id':pairingId,'kit_serial':kitSerial,'device_uid':deviceUid,'pairing_token':pairingToken})); return PairingClaimResult.fromJson(m); }
- bool _sameCapabilityValue(Object? a,Object? b)=>a.toString()==b.toString();
+ bool _sameCapabilityValue(Object? a,Object? b){
+  if(a is num&&b is num)return a==b;
+  if(a is Map&&b is Map){if(a.length!=b.length)return false;for(final key in a.keys){if(!b.containsKey(key)||!_sameCapabilityValue(a[key],b[key]))return false;}return true;}
+  if(a is List&&b is List){if(a.length!=b.length)return false;for(var i=0;i<a.length;i++){if(!_sameCapabilityValue(a[i],b[i]))return false;}return true;}
+  return a==b;
+ }
  Future<List<DeviceEventV2>> events(String id,{String? capabilityId,int perPage=20}) async {
   final query=<String,Object?>{'per_page':perPage}; if(capabilityId!=null)query['capability_id']=capabilityId;
   final m=_map(await _api.get('/client/devices/$id/events',queryParameters:query)); final paginator=_object(m,'events'); return _list(paginator,'data').map(DeviceEventV2.fromJson).toList(growable:false);
