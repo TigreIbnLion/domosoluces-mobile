@@ -106,3 +106,43 @@ final class ConsumptionSummary {
 }
 final class ConsumptionPoint {const ConsumptionPoint({required this.label,required this.energyKwh,required this.averagePowerW});final String label;final num energyKwh,averagePowerW;factory ConsumptionPoint.fromJson(Map<String,Object?> j)=>ConsumptionPoint(label:j['label'] as String,energyKwh:j['energy_kwh'] as num,averagePowerW:j['average_power_w'] as num);}
 final class DeviceConsumptionShare {const DeviceConsumptionShare({required this.deviceId,required this.name,required this.type,required this.kitName,required this.energyKwh,required this.sharePercent,required this.averagePowerW,required this.peakPowerW});final String deviceId,name;final String? type,kitName;final num energyKwh,sharePercent,averagePowerW,peakPowerW;factory DeviceConsumptionShare.fromJson(Map<String,Object?> j)=>DeviceConsumptionShare(deviceId:j['device_id'] as String,name:j['name'] as String,type:j['type'] as String?,kitName:j['kit_name'] as String?,energyKwh:j['energy_kwh'] as num,sharePercent:j['share_percent'] as num,averagePowerW:j['average_power_w'] as num,peakPowerW:j['peak_power_w'] as num);}
+
+
+final class CapabilityAvailability {
+ const CapabilityAvailability({required this.readable,required this.commandable,required this.configurable});
+ final bool readable,commandable,configurable;
+ factory CapabilityAvailability.fromJson(Map<String,Object?> j)=>CapabilityAvailability(readable:j['readable']==true,commandable:j['commandable']==true,configurable:j['configurable']==true);
+}
+final class CapabilityCommand {
+ const CapabilityCommand({required this.name,required this.input});
+ final String name; final Map<String,Object?> input;
+ factory CapabilityCommand.fromJson(Map<String,Object?> j)=>CapabilityCommand(name:j['name'] as String,input:Map<String,Object?>.from(j['input'] as Map));
+}
+final class CapabilityV2 {
+ const CapabilityV2({required this.id,required this.kind,required this.semantic,required this.stateSchema,required this.commands,required this.telemetry,required this.availability,required this.metadata});
+ final String id,kind,semantic; final Map<String,Object?>? stateSchema,telemetry,metadata; final List<CapabilityCommand> commands; final CapabilityAvailability availability;
+ factory CapabilityV2.fromJson(Map<String,Object?> j)=>CapabilityV2(id:j['id'] as String,kind:j['kind'] as String,semantic:j['semantic'] as String,stateSchema:j['state'] is Map?Map<String,Object?>.from(j['state'] as Map):null,commands:(j['commands'] as List? ?? const []).map((e)=>CapabilityCommand.fromJson(Map<String,Object?>.from(e as Map))).toList(growable:false),telemetry:j['telemetry'] is Map?Map<String,Object?>.from(j['telemetry'] as Map):null,availability:CapabilityAvailability.fromJson(Map<String,Object?>.from(j['availability'] as Map)),metadata:j['metadata'] is Map?Map<String,Object?>.from(j['metadata'] as Map):null);
+}
+final class ConfirmedCapabilityValue {
+ const ConfirmedCapabilityValue({required this.value,required this.origin,required this.confirmedAt});
+ final Object? value; final String? origin,confirmedAt;
+ factory ConfirmedCapabilityValue.fromJson(Map<String,Object?> j)=>ConfirmedCapabilityValue(value:j['value'],origin:j['origin'] as String?,confirmedAt:j['confirmed_at'] as String?);
+}
+final class DeviceCapabilities {
+ const DeviceCapabilities({required this.deviceId,required this.schemaVersion,required this.capabilities,required this.values,required this.recoveryPolicy});
+ final String deviceId,schemaVersion; final List<CapabilityV2> capabilities; final Map<String,ConfirmedCapabilityValue> values; final Map<String,Object?> recoveryPolicy;
+ factory DeviceCapabilities.fromJson(Map<String,Object?> j){
+  final rawValues=j['values'] is Map?Map<String,Object?>.from(j['values'] as Map):<String,Object?>{};
+  return DeviceCapabilities(deviceId:j['device_id'] as String,schemaVersion:j['schema_version'] as String,capabilities:(j['capabilities'] as List? ?? const []).map((e)=>CapabilityV2.fromJson(Map<String,Object?>.from(e as Map))).toList(growable:false),values:rawValues.map((k,v)=>MapEntry(k,ConfirmedCapabilityValue.fromJson(Map<String,Object?>.from(v as Map)))),recoveryPolicy:j['recovery_policy'] is Map?Map<String,Object?>.from(j['recovery_policy'] as Map):<String,Object?>{});
+ }
+}
+final class CapabilityCommandReceipt {
+ const CapabilityCommandReceipt({required this.commandId,required this.status,required this.message});
+ final String commandId,status,message;
+ factory CapabilityCommandReceipt.fromJson(Map<String,Object?> j)=>CapabilityCommandReceipt(commandId:j['command_id'] as String,status:j['status'] as String,message:j['message'] as String);
+}
+final class PairingClaimResult {
+ const PairingClaimResult({required this.kitId,required this.deviceId,required this.kitSerial,required this.deviceUid,required this.message});
+ final String kitId,deviceId,kitSerial,deviceUid,message;
+ factory PairingClaimResult.fromJson(Map<String,Object?> j)=>PairingClaimResult(kitId:j['kit_id'] as String,deviceId:j['device_id'] as String,kitSerial:j['kit_serial'] as String,deviceUid:j['device_uid'] as String,message:j['message'] as String);
+}
