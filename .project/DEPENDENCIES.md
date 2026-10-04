@@ -3,6 +3,7 @@
 Format : date | demandeur | fournisseur | besoin | urgence | statut
 
 ## Ouvertes
+- 2026-10-04 | MOBILE | WEB_API / LEAD | Figer les schemas Mobile des sessions auth (GET /auth/sessions), config device (PUT /client/devices/{device}/config) et des domaines avances deja presents Web (notifications, consommation, timers/schedules, groupes/scenes/automations, support) afin de poursuivre le Mobile sans inventer de payload | HAUTE | A TRAITER PAR LEAD
 - 2026-09-29 | EQUIPEMENT | WEB_API | Valider le contrat MQTT/ACK/telemetry/heartbeat V1 côté broker et serveur DEV avec un équipement réel | CRITIQUE | A TRAITER PAR LEAD
 - 2026-09-29 | WEB_API | EQUIPEMENT | Définir capacités exactes du prototype Keyestudio et mapping vers matériel final | HAUTE | A TRAITER
 - 2026-09-29 | EQUIPEMENT | LEAD | Définir provisioning et frontière de confidentialité usine | CRITIQUE | EN COURS LEAD
