@@ -35,6 +35,17 @@ final class AuthController extends AsyncNotifier<User?> {
       email: email, password: password, deviceName: 'DOMOSOLUCES Mobile'));
   }
 
+  Future<void> updateProfile({required String name,required String email,String? phone,String? zone}) async {
+    final current=state.value;
+    state=const AsyncLoading();
+    state=await AsyncValue.guard(()=>ref.read(authRepositoryProvider).updateProfile({'name':name.trim(),'email':email.trim(),'phone':phone?.trim().isEmpty==true?null:phone?.trim(),'zone':zone?.trim().isEmpty==true?null:zone?.trim()}));
+    if(state.hasError&&current!=null) state=AsyncError(state.error!,state.stackTrace!);
+  }
+
+  Future<void> updatePassword({required String currentPassword,required String password,required String confirmation}) async {
+    await ref.read(authRepositoryProvider).updatePassword({'current_password':currentPassword,'password':password,'password_confirmation':confirmation});
+  }
+
   Future<void> logout() async {
     state = const AsyncLoading();
     await ref.read(authRepositoryProvider).logout();
