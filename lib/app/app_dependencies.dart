@@ -37,9 +37,13 @@ final class AuthController extends AsyncNotifier<User?> {
 
   Future<void> updateProfile({required String name,String? phone}) async {
     final current=state.value;
-    state=const AsyncLoading();
-    state=await AsyncValue.guard(()=>ref.read(authRepositoryProvider).updateProfile({'name':name.trim(),'phone':phone?.trim().isEmpty==true?null:phone?.trim()}));
-    if(state.hasError&&current!=null) state=AsyncError(state.error!,state.stackTrace!);
+    try {
+      final updated=await ref.read(authRepositoryProvider).updateProfile({'name':name.trim(),'phone':phone?.trim().isEmpty==true?null:phone?.trim()});
+      state=AsyncData(updated);
+    } catch (error,stack) {
+      if(current!=null) state=AsyncData(current);
+      Error.throwWithStackTrace(error,stack);
+    }
   }
 
   Future<void> updatePassword({required String currentPassword,required String password,required String confirmation}) async {
