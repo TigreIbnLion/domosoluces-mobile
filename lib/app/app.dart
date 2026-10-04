@@ -7,6 +7,7 @@ import 'app_dependencies.dart';
 
 final routerProvider=Provider<GoRouter>((ref)=>GoRouter(initialLocation:'/splash',routes:[
  GoRoute(path:'/splash',builder:(_,__)=>const SessionGate()),
+ GoRoute(path:'/welcome',builder:(_,__)=>const LandingPage()),
  GoRoute(path:'/login',builder:(_,__)=>const LoginPage()),
  GoRoute(path:'/home',builder:(_,__)=>const HomePage()),
  GoRoute(path:'/profile',builder:(_,__)=>const ProfilePage()),
@@ -42,7 +43,56 @@ final class BrandLockup extends StatelessWidget{
  @override Widget build(BuildContext c)=>Row(mainAxisSize:MainAxisSize.min,children:[BrandMark(size:compact?38:52,inverted:inverted),SizedBox(width:compact?9:12),Text('DOMOSOLUCES',style:TextStyle(color:inverted?Colors.white:Brand.forest,fontSize:compact?18:26,fontWeight:FontWeight.w900,fontStyle:FontStyle.italic,letterSpacing:-.7))]);
 }
 final class DomosolucesApp extends ConsumerWidget{const DomosolucesApp({super.key});@override Widget build(BuildContext c,WidgetRef r)=>MaterialApp.router(debugShowCheckedModeBanner:false,title:'DOMOSOLUCES',theme:ThemeData(useMaterial3:true,scaffoldBackgroundColor:const Color(0xFFF4F7F3),colorScheme:ColorScheme.fromSeed(seedColor:Brand.forest,primary:Brand.forest,secondary:Brand.lime,tertiary:Brand.orange,surface:Colors.white),appBarTheme:const AppBarTheme(backgroundColor:Colors.transparent,foregroundColor:Brand.ink,elevation:0,centerTitle:false),cardTheme:CardThemeData(elevation:0,color:Colors.white,shape:RoundedRectangleBorder(borderRadius:BorderRadius.circular(18),side:const BorderSide(color:Brand.border))),filledButtonTheme:FilledButtonThemeData(style:FilledButton.styleFrom(minimumSize:const Size(0,50),shape:RoundedRectangleBorder(borderRadius:BorderRadius.circular(12)))),inputDecorationTheme:InputDecorationTheme(filled:true,fillColor:Colors.white,labelStyle:const TextStyle(color:Brand.muted),border:OutlineInputBorder(borderRadius:BorderRadius.circular(12),borderSide:const BorderSide(color:Brand.border)),enabledBorder:OutlineInputBorder(borderRadius:BorderRadius.circular(12),borderSide:const BorderSide(color:Brand.border)),focusedBorder:OutlineInputBorder(borderRadius:BorderRadius.circular(12),borderSide:const BorderSide(color:Brand.forest,width:1.5)))),routerConfig:r.watch(routerProvider));}
-final class SessionGate extends ConsumerWidget{const SessionGate({super.key});@override Widget build(BuildContext c,WidgetRef r){final a=r.watch(authControllerProvider);r.listen(authControllerProvider,(_,n)=>n.whenData((u){if(c.mounted)c.go(u==null?'/login':'/home');}));return Scaffold(body:Center(child:a.hasError?Text(a.error is AppException?(a.error! as AppException).message:'Connexion impossible'):const CircularProgressIndicator()));}}
+final class SessionGate extends ConsumerWidget{const SessionGate({super.key});@override Widget build(BuildContext c,WidgetRef r){final a=r.watch(authControllerProvider);r.listen(authControllerProvider,(_,n)=>n.whenData((u){if(c.mounted)c.go(u==null?'/welcome':'/home');}));return Scaffold(body:Center(child:a.hasError?Text(a.error is AppException?(a.error! as AppException).message:'Connexion impossible'):const CircularProgressIndicator()));}}
+final class LandingPage extends StatelessWidget{
+ const LandingPage({super.key});
+ @override Widget build(BuildContext c)=>Scaffold(
+  body:SafeArea(child:LayoutBuilder(builder:(c,constraints)=>SingleChildScrollView(
+   padding:const EdgeInsets.fromLTRB(24,28,24,24),
+   child:ConstrainedBox(constraints:BoxConstraints(minHeight:constraints.maxHeight-52),child:Column(
+    crossAxisAlignment:CrossAxisAlignment.stretch,
+    children:[
+     const Align(alignment:Alignment.centerLeft,child:BrandMark(size:58)),
+     const SizedBox(height:54),
+     Container(
+      padding:const EdgeInsets.all(26),
+      decoration:BoxDecoration(
+       gradient:const LinearGradient(colors:[Brand.forest,Color(0xFF174B39)],begin:Alignment.topLeft,end:Alignment.bottomRight),
+       borderRadius:BorderRadius.circular(30),
+      ),
+      child:const Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
+       BrandMark(size:72,inverted:true),
+       SizedBox(height:28),
+       Text('Votre maison.\nPlus intelligente.',style:TextStyle(color:Colors.white,fontSize:36,fontWeight:FontWeight.w900,fontStyle:FontStyle.italic,height:1.04,letterSpacing:-1.2)),
+       SizedBox(height:16),
+       Text('Pilotez vos équipements, suivez leur état et gardez un œil sur votre énergie depuis une seule application.',style:TextStyle(color:Color(0xFFD9E7E0),fontSize:15,height:1.55)),
+      ]),
+     ),
+     const SizedBox(height:28),
+     const Row(children:[
+      Expanded(child:_LandingFeature(icon:Icons.bolt_rounded,title:'Pilotez',text:'Vos équipements')),
+      SizedBox(width:10),
+      Expanded(child:_LandingFeature(icon:Icons.sensors_rounded,title:'Surveillez',text:'En temps réel')),
+      SizedBox(width:10),
+      Expanded(child:_LandingFeature(icon:Icons.energy_savings_leaf_outlined,title:'Maîtrisez',text:'Votre énergie')),
+     ]),
+     const Spacer(),
+     const Padding(padding:EdgeInsets.symmetric(vertical:26),child:Text('La gestion automatique de la maison et l’énergie, notre affaire.',textAlign:TextAlign.center,style:TextStyle(color:Brand.muted,height:1.45,fontWeight:FontWeight.w600))),
+     FilledButton.icon(onPressed:()=>c.push('/login'),icon:const Icon(Icons.arrow_forward_rounded),label:const Text('Se connecter')),
+    ],
+   )),
+  ))),
+ );
+}
+final class _LandingFeature extends StatelessWidget{
+ const _LandingFeature({required this.icon,required this.title,required this.text});
+ final IconData icon;final String title,text;
+ @override Widget build(BuildContext c)=>Container(
+  padding:const EdgeInsets.symmetric(horizontal:10,vertical:16),
+  decoration:BoxDecoration(color:Colors.white,borderRadius:BorderRadius.circular(18),border:Border.all(color:Brand.border)),
+  child:Column(children:[Icon(icon,color:Brand.forest,size:25),const SizedBox(height:9),Text(title,textAlign:TextAlign.center,style:const TextStyle(color:Brand.ink,fontSize:12,fontWeight:FontWeight.w800)),const SizedBox(height:3),Text(text,textAlign:TextAlign.center,style:const TextStyle(color:Brand.muted,fontSize:10))]),
+ );
+}
 final class LoginPage extends ConsumerStatefulWidget{const LoginPage({super.key});@override ConsumerState<LoginPage> createState()=>_LoginPageState();}
 final class _LoginPageState extends ConsumerState<LoginPage> {
   final email = TextEditingController();
