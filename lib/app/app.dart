@@ -13,7 +13,31 @@ final routerProvider=Provider<GoRouter>((ref)=>GoRouter(initialLocation:'/splash
  GoRoute(path:'/kits/:kitId',builder:(_,s)=>DevicesPage(kitId:s.pathParameters['kitId']!)),
  GoRoute(path:'/devices/:deviceId',builder:(_,s)=>DevicePage(deviceId:s.pathParameters['deviceId']!)),
 ]));
-final class DomosolucesApp extends ConsumerWidget{const DomosolucesApp({super.key});@override Widget build(BuildContext c,WidgetRef r)=>MaterialApp.router(debugShowCheckedModeBanner:false,title:'DOMOSOLUCES',theme:ThemeData(useMaterial3:true,scaffoldBackgroundColor:const Color(0xFFF4F7F3),colorScheme:ColorScheme.fromSeed(seedColor:const Color(0xFF0F5C3F),primary:const Color(0xFF0F5C3F),secondary:const Color(0xFF8CC63F),tertiary:const Color(0xFFF26B1D)),cardTheme:const CardThemeData(elevation:0),inputDecorationTheme:InputDecorationTheme(filled:true,fillColor:Colors.white,border:OutlineInputBorder(borderRadius:BorderRadius.circular(14)))),routerConfig:r.watch(routerProvider));}
+abstract final class Brand {
+ static const forest=Color(0xFF0F5C3F), lime=Color(0xFF8CC63F), orange=Color(0xFFF26B1D), pale=Color(0xFFEEF1EC);
+ static const ink=Color(0xFF153229), muted=Color(0xFF52685F), border=Color(0xFFDCE5DC), red=Color(0xFFD64545);
+}
+final class BrandMark extends StatelessWidget{
+ const BrandMark({super.key,this.size=48,this.inverted=false}); final double size; final bool inverted;
+ @override Widget build(BuildContext c)=>CustomPaint(size:Size.square(size),painter:_BrandPainter(inverted));
+}
+final class _BrandPainter extends CustomPainter{
+ const _BrandPainter(this.inverted); final bool inverted;
+ @override void paint(Canvas c,Size s){final k=s.width/42;
+  final stroke=Paint()..color=inverted?Colors.white:Brand.forest..style=PaintingStyle.stroke..strokeWidth=5*k..strokeCap=StrokeCap.round;
+  final d=Path()..moveTo(14*k,5*k)..lineTo(22*k,5*k)..cubicTo(31*k,5*k,37*k,11*k,37*k,21*k)..cubicTo(37*k,31*k,31*k,37*k,22*k,37*k)..lineTo(14*k,37*k);c.drawPath(d,stroke);
+  final lime=Paint()..color=Brand.lime..strokeWidth=4*k..strokeCap=StrokeCap.round;
+  for(final y in [8.0,17.0,26.0,35.0])c.drawLine(Offset(6*k,y*k),Offset(11*k,y*k),lime);
+  final bolt=Path()..moveTo(23*k,10*k)..lineTo(15*k,23*k)..lineTo(22*k,23*k)..lineTo(19*k,33*k)..lineTo(29*k,18*k)..lineTo(22*k,18*k)..close();
+  c.drawPath(bolt,Paint()..color=Brand.orange);
+ }
+ @override bool shouldRepaint(covariant _BrandPainter o)=>o.inverted!=inverted;
+}
+final class BrandLockup extends StatelessWidget{
+ const BrandLockup({super.key,this.compact=false,this.inverted=false});final bool compact,inverted;
+ @override Widget build(BuildContext c)=>Row(mainAxisSize:MainAxisSize.min,children:[BrandMark(size:compact?38:52,inverted:inverted),SizedBox(width:compact?9:12),Text('DOMOSOLUCES',style:TextStyle(color:inverted?Colors.white:Brand.forest,fontSize:compact?18:26,fontWeight:FontWeight.w900,fontStyle:FontStyle.italic,letterSpacing:-.7))]);
+}
+final class DomosolucesApp extends ConsumerWidget{const DomosolucesApp({super.key});@override Widget build(BuildContext c,WidgetRef r)=>MaterialApp.router(debugShowCheckedModeBanner:false,title:'DOMOSOLUCES',theme:ThemeData(useMaterial3:true,scaffoldBackgroundColor:const Color(0xFFF4F7F3),colorScheme:ColorScheme.fromSeed(seedColor:Brand.forest,primary:Brand.forest,secondary:Brand.lime,tertiary:Brand.orange,surface:Colors.white),appBarTheme:const AppBarTheme(backgroundColor:Colors.transparent,foregroundColor:Brand.ink,elevation:0,centerTitle:false),cardTheme:CardThemeData(elevation:0,color:Colors.white,shape:RoundedRectangleBorder(borderRadius:BorderRadius.circular(18),side:const BorderSide(color:Brand.border))),filledButtonTheme:FilledButtonThemeData(style:FilledButton.styleFrom(minimumSize:const Size(0,50),shape:RoundedRectangleBorder(borderRadius:BorderRadius.circular(12)))),inputDecorationTheme:InputDecorationTheme(filled:true,fillColor:Colors.white,labelStyle:const TextStyle(color:Brand.muted),border:OutlineInputBorder(borderRadius:BorderRadius.circular(12),borderSide:const BorderSide(color:Brand.border)),enabledBorder:OutlineInputBorder(borderRadius:BorderRadius.circular(12),borderSide:const BorderSide(color:Brand.border)),focusedBorder:OutlineInputBorder(borderRadius:BorderRadius.circular(12),borderSide:const BorderSide(color:Brand.forest,width:1.5)))),routerConfig:r.watch(routerProvider));}
 final class SessionGate extends ConsumerWidget{const SessionGate({super.key});@override Widget build(BuildContext c,WidgetRef r){final a=r.watch(authControllerProvider);r.listen(authControllerProvider,(_,n)=>n.whenData((u){if(c.mounted)c.go(u==null?'/login':'/home');}));return Scaffold(body:Center(child:a.hasError?Text(a.error is AppException?(a.error! as AppException).message:'Connexion impossible'):const CircularProgressIndicator()));}}
 final class LoginPage extends ConsumerStatefulWidget{const LoginPage({super.key});@override ConsumerState<LoginPage> createState()=>_LoginPageState();}
 final class _LoginPageState extends ConsumerState<LoginPage> {
@@ -52,11 +76,9 @@ final class _LoginPageState extends ConsumerState<LoginPage> {
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Container(width:56,height:56,decoration:BoxDecoration(color:const Color(0xFF0F5C3F),borderRadius:BorderRadius.circular(16)),child:const Icon(Icons.power_settings_new_rounded,color:Colors.white,size:32)),
-                    const SizedBox(height: 16),
-                    Text('DOMOSOLUCES', style: Theme.of(context).textTheme.headlineMedium?.copyWith(fontWeight:FontWeight.w900,color:const Color(0xFF0F5C3F))),
-                    const SizedBox(height: 6),
-                    const Text('Votre maison, connectée et maîtrisée.',style:TextStyle(color:Color(0xFF52685F))),
+                    const BrandLockup(),
+                    const SizedBox(height: 12),
+                    const Text('La gestion automatique de la maison et l’énergie, notre affaire.',style:TextStyle(color:Brand.muted,height:1.45)),
                     const SizedBox(height: 24),
                     TextFormField(
                       controller: email,
@@ -93,7 +115,11 @@ final class _LoginPageState extends ConsumerState<LoginPage> {
   }
 }
 final class HomePage extends ConsumerStatefulWidget{const HomePage({super.key});@override ConsumerState<HomePage> createState()=>_HomePageState();}
-final class _HomePageState extends ConsumerState<HomePage>{late Future<List<Kit>> future;@override void initState(){super.initState();future=ref.read(clientRepositoryProvider).kits();}Future<void> reload()async{setState(()=>future=ref.read(clientRepositoryProvider).kits());await future;}@override Widget build(BuildContext c)=>Scaffold(appBar:AppBar(title:const Text('DOMOSOLUCES',style:TextStyle(fontWeight:FontWeight.w900,color:Color(0xFF0F5C3F))),actions:[IconButton(tooltip:'Mon compte',onPressed:()=>c.push('/profile'),icon:const Icon(Icons.account_circle_outlined))]),body:FutureBuilder<List<Kit>>(future:future,builder:(c,s){if(s.connectionState!=ConnectionState.done)return const Center(child:CircularProgressIndicator());if(s.hasError)return ErrorView(error:s.error,onRetry:reload);final xs=s.data??[];if(xs.isEmpty)return const Center(child:Text('Aucun kit disponible.'));return RefreshIndicator(onRefresh:reload,child:ListView.builder(padding:const EdgeInsets.all(16),itemCount:xs.length+1,itemBuilder:(_,i){if(i==0)return Padding(padding:const EdgeInsets.only(bottom:20),child:Container(padding:const EdgeInsets.all(22),decoration:BoxDecoration(color:const Color(0xFF0F5C3F),borderRadius:BorderRadius.circular(22)),child:const Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Icon(Icons.energy_savings_leaf_rounded,color:Color(0xFF8CC63F),size:32),SizedBox(height:14),Text('Pilotez votre maison en toute simplicité.',style:TextStyle(color:Colors.white,fontSize:21,fontWeight:FontWeight.w800)),SizedBox(height:6),Text('Vos installations et équipements en un coup d’œil.',style:TextStyle(color:Color(0xFFD4E2DC))) ])));final k=xs[i-1];return Padding(padding:const EdgeInsets.only(bottom:12),child:Card(color:Colors.white,shape:RoundedRectangleBorder(borderRadius:BorderRadius.circular(18),side:const BorderSide(color:Color(0xFFDCE5DC))),child:ListTile(contentPadding:const EdgeInsets.symmetric(horizontal:16,vertical:8),leading:const CircleAvatar(backgroundColor:Color(0xFFEAF3EA),foregroundColor:Color(0xFF0F5C3F),child:Icon(Icons.home_work_outlined)),title:Text(k.displayName,style:const TextStyle(fontWeight:FontWeight.w800)),subtitle:Text('${k.status} • ${k.devicesCount} équipement(s)'),trailing:const Icon(Icons.chevron_right),onTap:()=>c.push('/kits/${k.id}')))); }));}));}
+final class _HomePageState extends ConsumerState<HomePage>{late Future<List<Kit>> future;@override void initState(){super.initState();future=ref.read(clientRepositoryProvider).kits();}Future<void> reload()async{setState(()=>future=ref.read(clientRepositoryProvider).kits());await future;}@override Widget build(BuildContext c)=>Scaffold(appBar:AppBar(title:const BrandLockup(compact:true),actions:[IconButton(tooltip:'Mon compte',onPressed:()=>c.push('/profile'),icon:const Icon(Icons.account_circle_outlined))]),body:FutureBuilder<List<Kit>>(future:future,builder:(c,s){if(s.connectionState!=ConnectionState.done)return const Center(child:CircularProgressIndicator());if(s.hasError)return ErrorView(error:s.error,onRetry:reload);final xs=s.data??[];return RefreshIndicator(onRefresh:reload,child:ListView.builder(padding:const EdgeInsets.all(16),itemCount:xs.length+1,itemBuilder:(_,i){if(i==0)return Padding(padding:const EdgeInsets.only(bottom:20),child:Container(padding:const EdgeInsets.all(22),decoration:BoxDecoration(color:const Color(0xFF0F5C3F),borderRadius:BorderRadius.circular(22)),child:const Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Icon(Icons.energy_savings_leaf_rounded,color:Color(0xFF8CC63F),size:32),SizedBox(height:14),Text('Pilotez votre maison en toute simplicité.',style:TextStyle(color:Colors.white,fontSize:21,fontWeight:FontWeight.w800)),SizedBox(height:6),Text('Vos installations et équipements en un coup d’œil.',style:TextStyle(color:Color(0xFFD4E2DC))) ])));if(xs.isEmpty)return const _EmptyInstallations();final k=xs[i-1];return Padding(padding:const EdgeInsets.only(bottom:12),child:Card(color:Colors.white,shape:RoundedRectangleBorder(borderRadius:BorderRadius.circular(18),side:const BorderSide(color:Color(0xFFDCE5DC))),child:ListTile(contentPadding:const EdgeInsets.symmetric(horizontal:16,vertical:8),leading:const CircleAvatar(backgroundColor:Color(0xFFEAF3EA),foregroundColor:Color(0xFF0F5C3F),child:Icon(Icons.home_work_outlined)),title:Text(k.displayName,style:const TextStyle(fontWeight:FontWeight.w800)),subtitle:Text('${k.status} • ${k.devicesCount} équipement(s)'),trailing:const Icon(Icons.chevron_right),onTap:()=>c.push('/kits/${k.id}')))); }));}));}
+final class _EmptyInstallations extends StatelessWidget{
+ const _EmptyInstallations();
+ @override Widget build(BuildContext c)=>Container(margin:const EdgeInsets.only(top:4),padding:const EdgeInsets.all(26),decoration:BoxDecoration(color:Colors.white,borderRadius:BorderRadius.circular(18),border:Border.all(color:Brand.border)),child:const Column(children:[Icon(Icons.home_work_outlined,size:38,color:Brand.forest),SizedBox(height:12),Text('Aucune installation',style:TextStyle(fontWeight:FontWeight.w800,fontSize:16)),SizedBox(height:6),Text('Votre installation apparaîtra ici dès son activation.',textAlign:TextAlign.center,style:TextStyle(color:Brand.muted))]));
+}
 final class ProfilePage extends ConsumerWidget{
  const ProfilePage({super.key});
  @override Widget build(BuildContext c,WidgetRef r){final u=r.watch(authControllerProvider).value;return Scaffold(appBar:AppBar(title:const Text('Mon compte')),body:ListView(padding:const EdgeInsets.all(18),children:[
