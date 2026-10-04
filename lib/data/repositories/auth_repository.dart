@@ -50,7 +50,12 @@ final class AuthRepository {
     await _api.put('/auth/password', data: payload);
   }
 
-  Future<Object?> sessions() => _api.get('/auth/sessions');
+  Future<List<AuthSession>> sessions() async {
+    final data=_map(await _api.get('/auth/sessions'));
+    final raw=data['sessions'];
+    if(raw is! List) throw UnexpectedResponseException('Sessions API invalides.',details:data);
+    return raw.map((e)=>AuthSession.fromJson(Map<String,Object?>.from(e as Map))).toList(growable:false);
+  }
 
   Future<void> revokeSession(String tokenId) async {
     await _api.delete('/auth/sessions/${Uri.encodeComponent(tokenId)}');
