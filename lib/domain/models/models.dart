@@ -146,3 +146,10 @@ final class PairingClaimResult {
  final String kitId,deviceId,kitSerial,deviceUid,message;
  factory PairingClaimResult.fromJson(Map<String,Object?> j)=>PairingClaimResult(kitId:j['kit_id'] as String,deviceId:j['device_id'] as String,kitSerial:j['kit_serial'] as String,deviceUid:j['device_uid'] as String,message:j['message'] as String);
 }
+
+
+final class DeviceEventV2 {
+ const DeviceEventV2({required this.id,required this.deviceId,required this.capabilityId,required this.eventType,required this.value,required this.unit,required this.source,required this.observedAt,required this.metadata,required this.createdAt,required this.updatedAt});
+ final String id,deviceId,capabilityId,eventType; final Object? value; final String? unit,source,observedAt,createdAt,updatedAt; final Map<String,Object?>? metadata;
+ factory DeviceEventV2.fromJson(Map<String,Object?> j)=>DeviceEventV2(id:j['id'] as String,deviceId:j['device_id'] as String,capabilityId:j['capability_id'] as String,eventType:j['event_type'] as String,value:j['value'],unit:j['unit'] as String?,source:j['source'] as String?,observedAt:j['observed_at'] as String?,metadata:j['metadata'] is Map?Map<String,Object?>.from(j['metadata'] as Map):null,createdAt:j['created_at'] as String?,updatedAt:j['updated_at'] as String?);
+}
