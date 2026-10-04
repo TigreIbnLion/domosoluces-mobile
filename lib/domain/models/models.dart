@@ -153,3 +153,11 @@ final class DeviceEventV2 {
  final String id,deviceId,capabilityId,eventType; final Object? value; final String? unit,source,observedAt,createdAt,updatedAt; final Map<String,Object?>? metadata;
  factory DeviceEventV2.fromJson(Map<String,Object?> j)=>DeviceEventV2(id:j['id'] as String,deviceId:j['device_id'] as String,capabilityId:j['capability_id'] as String,eventType:j['event_type'] as String,value:j['value'],unit:j['unit'] as String?,source:j['source'] as String?,observedAt:j['observed_at'] as String?,metadata:j['metadata'] is Map?Map<String,Object?>.from(j['metadata'] as Map):null,createdAt:j['created_at'] as String?,updatedAt:j['updated_at'] as String?);
 }
+
+
+enum CapabilityCommandPhase { idle, pending, confirmed, error }
+final class CapabilityUiState {
+ const CapabilityUiState({required this.snapshot,this.phase=CapabilityCommandPhase.idle,this.pendingCapabilityId,this.message});
+ final DeviceCapabilities snapshot; final CapabilityCommandPhase phase; final String? pendingCapabilityId,message;
+ CapabilityUiState copyWith({DeviceCapabilities? snapshot,CapabilityCommandPhase? phase,String? pendingCapabilityId,String? message,bool clearPending=false,bool clearMessage=false})=>CapabilityUiState(snapshot:snapshot??this.snapshot,phase:phase??this.phase,pendingCapabilityId:clearPending?null:pendingCapabilityId??this.pendingCapabilityId,message:clearMessage?null:message??this.message);
+}
