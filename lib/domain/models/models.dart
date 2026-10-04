@@ -93,3 +93,16 @@ final class AuthSession {
     lastUsedAt:j['last_used_at'] as String?,createdAt:j['created_at'] as String?,expiresAt:j['expires_at'] as String?,
   );
 }
+
+
+final class ConsumptionSummary {
+ const ConsumptionSummary({required this.from,required this.to,required this.totalKwh,required this.estimatedCostXof,required this.averagePowerW,required this.peakPowerW,required this.records,required this.timeline,required this.byDevice});
+ final String from,to; final num totalKwh,estimatedCostXof,averagePowerW,peakPowerW; final int records;
+ final List<ConsumptionPoint> timeline; final List<DeviceConsumptionShare> byDevice;
+ factory ConsumptionSummary.fromJson(Map<String,Object?> j){
+  final f=Map<String,Object?>.from(j['filters'] as Map),s=Map<String,Object?>.from(j['summary'] as Map);
+  return ConsumptionSummary(from:f['from'] as String,to:f['to'] as String,totalKwh:s['total_kwh'] as num,estimatedCostXof:s['estimated_cost_xof'] as num,averagePowerW:s['average_power_w'] as num,peakPowerW:s['peak_power_w'] as num,records:s['records'] as int,timeline:(j['timeline'] as List).map((e)=>ConsumptionPoint.fromJson(Map<String,Object?>.from(e as Map))).toList(growable:false),byDevice:(j['by_device'] as List).map((e)=>DeviceConsumptionShare.fromJson(Map<String,Object?>.from(e as Map))).toList(growable:false));
+ }
+}
+final class ConsumptionPoint {const ConsumptionPoint({required this.label,required this.energyKwh,required this.averagePowerW});final String label;final num energyKwh,averagePowerW;factory ConsumptionPoint.fromJson(Map<String,Object?> j)=>ConsumptionPoint(label:j['label'] as String,energyKwh:j['energy_kwh'] as num,averagePowerW:j['average_power_w'] as num);}
+final class DeviceConsumptionShare {const DeviceConsumptionShare({required this.deviceId,required this.name,required this.type,required this.kitName,required this.energyKwh,required this.sharePercent,required this.averagePowerW,required this.peakPowerW});final String deviceId,name;final String? type,kitName;final num energyKwh,sharePercent,averagePowerW,peakPowerW;factory DeviceConsumptionShare.fromJson(Map<String,Object?> j)=>DeviceConsumptionShare(deviceId:j['device_id'] as String,name:j['name'] as String,type:j['type'] as String?,kitName:j['kit_name'] as String?,energyKwh:j['energy_kwh'] as num,sharePercent:j['share_percent'] as num,averagePowerW:j['average_power_w'] as num,peakPowerW:j['peak_power_w'] as num);}
