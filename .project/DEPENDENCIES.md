@@ -3,6 +3,8 @@
 Format : date | demandeur | fournisseur | besoin | urgence | statut
 
 ## Ouvertes
+- 2026-10-04 | MOBILE | LEAD / WEB_API / EQUIPEMENT | Figer le contrat de provisioning local Mobile↔ESP32 : découverte/identification, transport local, endpoints/payloads locaux, scan Wi-Fi, transfert credentials, reboot, preuve d'appairage, association/validation serveur et mécanisme cryptographique. Le mot de passe Wi-Fi doit rester strictement téléphone↔équipement et ne jamais transiter par Laravel. | CRITIQUE | A TRAITER PAR LEAD
+- 2026-10-04 | MOBILE | LEAD / WEB_API | Figer le schéma capabilities retourné par l'API (noms, types, versionnement, commandes/fonctions supportées et règles d'UX) afin que l'interface Mobile soit pilotée par capabilities et non par device.type. | CRITIQUE | A TRAITER PAR LEAD
 - 2026-09-29 | EQUIPEMENT | WEB_API | Valider le contrat MQTT/ACK/telemetry/heartbeat V1 côté broker et serveur DEV avec un équipement réel | CRITIQUE | A TRAITER PAR LEAD
 - 2026-09-29 | WEB_API | EQUIPEMENT | Définir capacités exactes du prototype Keyestudio et mapping vers matériel final | HAUTE | A TRAITER
 - 2026-09-29 | EQUIPEMENT | LEAD | Définir provisioning et frontière de confidentialité usine | CRITIQUE | EN COURS LEAD
