@@ -18,6 +18,17 @@ final class ClientRepository {
   return Device.fromJson(_object(m,'device'));
  }
  Future<ConsumptionSummary> consumption({String period='month'}) async { final m=_map(await _api.get('/client/consumption',)); return ConsumptionSummary.fromJson(m); }
+ Future<DeviceCapabilities> capabilities(String id) async { final m=_map(await _api.get('/client/devices/$id/capabilities')); return DeviceCapabilities.fromJson(m); }
+ Future<CapabilityCommandReceipt> sendCapabilityCommand(String id,{required String capabilityId,required String command,required Object? value}) async { final m=_map(await _api.post('/client/devices/$id/capability-commands',data:{'capability_id':capabilityId,'command':command,'value':value})); return CapabilityCommandReceipt.fromJson(m); }
+ Future<DeviceCapabilities> capabilityCommandAndConfirm(String id,{required String capabilityId,required String command,required Object? value,Duration timeout=const Duration(seconds:15),Duration interval=const Duration(seconds:1)}) async {
+  final before=await capabilities(id); final previous=before.values[capabilityId]?.value;
+  await sendCapabilityCommand(id,capabilityId:capabilityId,command:command,value:value);
+  final deadline=DateTime.now().add(timeout);
+  while(DateTime.now().isBefore(deadline)){await Future<void>.delayed(interval);try{final current=await capabilities(id);final confirmed=current.values[capabilityId]?.value;if(confirmed!=previous&&_sameCapabilityValue(confirmed,value))return current;}on NetworkException{}on ServerException{}}
+  throw UnexpectedResponseException('Commande envoyée, mais valeur non confirmée avant expiration.');
+ }
+ Future<PairingClaimResult> claimPairing({required String pairingId,required String kitSerial,required String deviceUid,required String pairingToken}) async { final m=_map(await _api.post('/client/pairing/claim',data:{'pairing_id':pairingId,'kit_serial':kitSerial,'device_uid':deviceUid,'pairing_token':pairingToken})); return PairingClaimResult.fromJson(m); }
+ bool _sameCapabilityValue(Object? a,Object? b)=>a.toString()==b.toString();
  Future<Device> status(String id) async { final m=_map(await _api.get('/client/devices/$id/status')); return Device.fromJson(_object(m,'device')); }
  Future<void> sendCommand(String id,{required bool turnOn})=>_api.post('/client/devices/$id/${turnOn?'on':'off'}');
  Future<DeviceCommandState> commandAndConfirm(String id,{required bool turnOn,Duration timeout=const Duration(seconds:15),Duration interval=const Duration(seconds:1)}) async {
