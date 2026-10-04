@@ -7,6 +7,16 @@ final class ClientRepository {
  Future<List<Kit>> kits() async { final m=_map(await _api.get('/client/kits')); return _list(m,'kits').map(Kit.fromJson).toList(); }
  Future<Kit> kit(String id) async { final m=_map(await _api.get('/client/kits/$id')); return Kit.fromJson(_object(m,'kit')); }
  Future<List<Device>> devices(String kitId) async { final m=_map(await _api.get('/client/kits/$kitId/devices')); return _list(m,'devices').map(Device.fromJson).toList(); }
+ Future<Device> updateDeviceConfig(String id,{String? name,String? displayName,String? room,String? icon,int? position}) async {
+  final payload=<String,Object?>{};
+  if(name!=null)payload['name']=name;
+  if(displayName!=null)payload['display_name']=displayName;
+  if(room!=null)payload['room']=room;
+  if(icon!=null)payload['icon']=icon;
+  if(position!=null)payload['position']=position;
+  final m=_map(await _api.put('/client/devices/$id/config',data:payload));
+  return Device.fromJson(_object(m,'device'));
+ }
  Future<Device> status(String id) async { final m=_map(await _api.get('/client/devices/$id/status')); return Device.fromJson(_object(m,'device')); }
  Future<void> sendCommand(String id,{required bool turnOn})=>_api.post('/client/devices/$id/${turnOn?'on':'off'}');
  Future<DeviceCommandState> commandAndConfirm(String id,{required bool turnOn,Duration timeout=const Duration(seconds:15),Duration interval=const Duration(seconds:1)}) async {
