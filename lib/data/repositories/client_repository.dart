@@ -17,7 +17,8 @@ final class ClientRepository {
   final m=_map(await _api.put('/client/devices/$id/config',data:payload));
   return Device.fromJson(_object(m,'device'));
  }
- Future<ConsumptionSummary> consumption({String period='month'}) async { final m=_map(await _api.get('/client/consumption',queryParameters:{'period':period})); return ConsumptionSummary.fromJson(m); }\n Future<Device> status(String id) async { final m=_map(await _api.get('/client/devices/$id/status')); return Device.fromJson(_object(m,'device')); }
+ Future<ConsumptionSummary> consumption({String period='month'}) async { final m=_map(await _api.get('/client/consumption',)); return ConsumptionSummary.fromJson(m); }
+ Future<Device> status(String id) async { final m=_map(await _api.get('/client/devices/$id/status')); return Device.fromJson(_object(m,'device')); }
  Future<void> sendCommand(String id,{required bool turnOn})=>_api.post('/client/devices/$id/${turnOn?'on':'off'}');
  Future<DeviceCommandState> commandAndConfirm(String id,{required bool turnOn,Duration timeout=const Duration(seconds:15),Duration interval=const Duration(seconds:1)}) async {
   await sendCommand(id,turnOn:turnOn); final deadline=DateTime.now().add(timeout); final expected=turnOn?'on':'off';
