@@ -81,3 +81,15 @@ final class DeviceCommandState {
   final Device? device;
   final String? message;
 }
+
+
+final class AuthSession {
+  const AuthSession({required this.id,required this.name,required this.lastUsedAt,required this.createdAt,required this.expiresAt});
+  final int id;
+  final String name;
+  final String? lastUsedAt,createdAt,expiresAt;
+  factory AuthSession.fromJson(Map<String,Object?> j)=>AuthSession(
+    id:j['id'] as int,name:j['name'] as String,
+    lastUsedAt:j['last_used_at'] as String?,createdAt:j['created_at'] as String?,expiresAt:j['expires_at'] as String?,
+  );
+}
