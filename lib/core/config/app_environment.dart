@@ -4,9 +4,9 @@ final class AppConfig {
   const AppConfig._();
 
   static const environmentName =
-      String.fromEnvironment('APP_ENV', defaultValue: 'dev');
+      String.fromEnvironment('APP_ENV', defaultValue: 'production');
   static const apiOrigin =
-      String.fromEnvironment('API_ORIGIN', defaultValue: 'http://10.0.2.2:8000');
+      String.fromEnvironment('API_ORIGIN', defaultValue: 'https://domosoluces.ci');
 
   static AppEnvironment get environment => switch (environmentName) {
         'production' => AppEnvironment.production,
